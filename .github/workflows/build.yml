@@ -64,6 +64,17 @@ jobs:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       with:
         persist-credentials: false
+    - name: Refuse to replace an already published image release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |-
+        python3 - <<'GUARD'
+        import os,subprocess
+        path='repos/'+os.environ['GITHUB_REPOSITORY']+'/releases/tags/'+os.environ['GITHUB_REF_NAME']
+        r=subprocess.run(['gh','api',path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        if r.returncode==0:raise SystemExit('Release exists; refusing to mutate its image tag')
+        if b'(HTTP 404)' not in r.stderr:raise SystemExit('Cannot establish that this is a new release')
+        GUARD
     - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
       with:
         name: release-files

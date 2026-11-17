@@ -18,7 +18,7 @@ RW resize зрелого PVC и сохранность данных провер
 
 Сборка: `make csi-package` (binary и Helm archive), `make csi-image` (только
 локальный Docker image). Артефакты имеют детерминированные tar metadata/gzip;
-сверяйте `dist/CSI-SHA256SUMS`. Официальные sidecars, builder и runtime
+сверяйте `dist/SHA256SUMS`. Официальные sidecars, builder и runtime
 закреплены linux/amd64 digest в `deploy/csi/images.lock.yaml`. APT использует
 [Ubuntu snapshot](https://snapshot.ubuntu.com/) 20261113T000000Z. Сборка
 требует доступа к этим registry и snapshot; загрузка образа в registry —
@@ -98,7 +98,7 @@ Kubernetes List/CAS, без CLO POST. Полные root/boot facts новой н
 и не редактируйте status для обхода запрета. Не откатывайте старый controller,
 который не понимает seal, при pending initialization. Сохраняются один controller,
 Recreate и обязательное доказательство прекращения старого issuer. Протокол и
-проверки: [итоговое ревью](../../docs/architecture/CLO_FINAL_REVIEW_2026-11-17.md).
+проверки: [описание гарантий](docs/design.md).
 
 ## CSI recovery runbook
 
