@@ -1,0 +1,80 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: clofences.storage.clo.rave-technology.io
+spec:
+  group: storage.clo.rave-technology.io
+  scope: Namespaced
+  names:
+    plural: clofences
+    singular: clofence
+    kind: CloFence
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    subresources:
+      status: {}
+    schema:
+      openAPIV3Schema:
+        type: object
+        required:
+        - spec
+        properties:
+          spec:
+            type: object
+            required:
+            - installationID
+            - projectID
+            - bindingID
+            - serverID
+            - nodeUID
+            - epoch
+            - operator
+            - nonce
+            properties:
+              initializationIntent:
+                type: object
+                required: [version, digest, status]
+                properties:
+                  version:
+                    type: string
+                    enum: [v1]
+                  digest:
+                    type: string
+                    pattern: '^[a-f0-9]{64}$'
+                  status:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+              installationID:
+                type: string
+                format: uuid
+              projectID:
+                type: string
+                format: uuid
+              bindingID:
+                type: string
+              serverID:
+                type: string
+                format: uuid
+              nodeUID:
+                type: string
+              epoch:
+                type: integer
+                format: int64
+                minimum: 1
+              operator:
+                type: string
+              nonce:
+                type: string
+            x-kubernetes-validations:
+            - rule: self == oldSelf
+              message: Registry ownership spec is immutable
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+            properties:
+              initialized:
+                type: boolean
+            required:
+            - initialized

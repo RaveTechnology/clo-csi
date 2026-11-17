@@ -1,0 +1,26 @@
+projectID: ""
+installationID: ""
+existingSecret: ""
+existingSecretKey: token
+image:
+  repository: ghcr.io/ravetechnology/clo-csi
+  digest: ""
+  pullPolicy: IfNotPresent
+tls:
+  existingSecret: clo-csi-tls
+kubeletRoot: /var/lib/kubelet
+journalRoot: /var/lib/clo-csi
+sidecars:
+  provisioner: registry.k8s.io/sig-storage/csi-provisioner:v6.4.0@sha256:7f4a41ea3d53b00331db3a7f04cffb4444ffba68008e8c15da33ecfb656288db
+  attacher: registry.k8s.io/sig-storage/csi-attacher:v4.13.0@sha256:3998c70f02511068e879b2222d7d4943db86fe044dd311f7bbb90812f778ad82
+  resizer: registry.k8s.io/sig-storage/csi-resizer:v2.3.0@sha256:707e5b1a2ee07a8df92a41d2ca67edc4582b46aedd69192bc74917f804101d40
+  registrar: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.18.0@sha256:692a30d9f27d32a25ea2784d01251b73e189e9d1156dd43c58f87ad2b70ec1e6
+  liveness: registry.k8s.io/sig-storage/livenessprobe:v2.20.0@sha256:c3dc967a4d8b18655e14bab5553017f850fda96221b8b0d2abfd9f6213c30f35
+controller:
+  resources:
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {memory: 1Gi}
+node:
+  resources:
+    requests: {cpu: 50m, memory: 96Mi}
+    limits: {memory: 512Mi}

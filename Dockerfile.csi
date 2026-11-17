@@ -1,0 +1,25 @@
+# Inputs and linux/amd64 manifest digests: deploy/csi/images.lock.yaml.
+FROM docker.io/library/golang:1.27.1-bookworm@sha256:e114385c58e7280d2f56d6cf374219dda33fef8eb77f72e9f290ccae6160bd90 AS builder
+WORKDIR /src
+ARG VERSION=0.1.0-rc.1
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+COPY . .
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -buildvcs=false -ldflags="-s -w -buildid= -X main.version=${VERSION}" -o /clo-csi ./cmd/clo-csi
+
+FROM docker.io/library/ubuntu:24.04@sha256:77eb101c607d6e3d4f5ad0c8a02c2136c689b98aba1f359e6502ba517e5c57ec
+ARG SOURCE_DATE_EPOCH=0
+# Bootstrap HTTPS trust from the pinned builder before apt installs Ubuntu's CA bundle.
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+# Ubuntu 24.04's apt supports a dated, immutable archive snapshot.
+# https://snapshot.ubuntu.com/ — update this together with images.lock.yaml.
+RUN apt-get update --snapshot 20261113T000000Z \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --snapshot 20261113T000000Z ca-certificates util-linux e2fsprogs \
+ && rm -rf /var/lib/apt/lists/* /var/log/apt/* /var/log/dpkg.log
+COPY --from=builder /clo-csi /clo-csi
+COPY LICENSE NOTICE THIRD_PARTY_NOTICES.txt /usr/share/doc/clo-csi/
+USER 65532:65532
+ENTRYPOINT ["/clo-csi"]
+
+LABEL org.opencontainers.image.source="https://github.com/RaveTechnology/clo-csi"
+LABEL org.opencontainers.image.licenses="Apache-2.0"

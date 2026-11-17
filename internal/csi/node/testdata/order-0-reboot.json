@@ -1,0 +1,106 @@
+{
+  "blockdevices": [
+    {
+      "name": "/dev/sda",
+      "type": "disk",
+      "size": 10739277824,
+      "fstype": null,
+      "mountpoints": [
+        null
+      ],
+      "serial": "a5846adf-5e0c-4fe4-a659-4b16b198a4e6",
+      "hctl": "0:0:0:0",
+      "children": [
+        {
+          "name": "/dev/sda1",
+          "type": "part",
+          "size": 576716800,
+          "fstype": "vfat",
+          "mountpoints": [
+            "/boot/efi"
+          ],
+          "serial": null,
+          "hctl": null,
+          "maj:min": "8:1"
+        },
+        {
+          "name": "/dev/sda2",
+          "type": "part",
+          "size": 8388608,
+          "fstype": null,
+          "mountpoints": [
+            null
+          ],
+          "serial": null,
+          "hctl": null,
+          "maj:min": "8:2"
+        },
+        {
+          "name": "/dev/sda3",
+          "type": "part",
+          "size": 10153106944,
+          "fstype": "ext4",
+          "mountpoints": [
+            "/"
+          ],
+          "serial": null,
+          "hctl": null,
+          "maj:min": "8:3"
+        }
+      ],
+      "maj:min": "8:0"
+    },
+    {
+      "name": "/dev/sdb",
+      "type": "disk",
+      "size": 10739277824,
+      "fstype": null,
+      "mountpoints": [
+        null
+      ],
+      "serial": "6519968c-695c-4511-bd21-b77833a06470",
+      "hctl": "0:0:0:2",
+      "maj:min": "8:16"
+    },
+    {
+      "name": "/dev/sdc",
+      "type": "disk",
+      "size": 10739277824,
+      "fstype": null,
+      "mountpoints": [
+        null
+      ],
+      "serial": "975668b5-ae08-4c80-a398-7f56ec6e4d16",
+      "hctl": "0:0:0:1",
+      "maj:min": "8:32"
+    },
+    {
+      "name": "/dev/sr0",
+      "type": "rom",
+      "size": 532480,
+      "fstype": "iso9660",
+      "mountpoints": [
+        null
+      ],
+      "serial": "QM00003",
+      "hctl": "2:0:0:0",
+      "maj:min": "8:48"
+    }
+  ],
+  "filesystems": [
+    {
+      "source": "/dev/sda1",
+      "target": "/boot/efi",
+      "maj:min": "8:1",
+      "options": "rw,relatime"
+    },
+    {
+      "source": "/dev/sda3",
+      "target": "/",
+      "maj:min": "8:3",
+      "options": "rw,relatime"
+    }
+  ],
+  "bootID": "562991b9-2a95-4e0e-837d-88eb452ad825",
+  "apiXPath": "/dev/sdc"
+}

@@ -1,0 +1,19 @@
+{{- $id := required "installationID must be supplied and backed up" .Values.installationID -}}
+{{- $project := required "projectID required" .Values.projectID -}}
+{{- $old := lookup "v1" "ConfigMap" .Release.Namespace "clo-csi-installation" -}}
+{{- if $old -}}
+{{- if or (ne (get $old.data "installationID") $id) (ne (get $old.data "projectID") $project) (not $old.immutable) -}}
+{{- fail "existing immutable installation scope differs; restore registry, do not reinitialize" -}}
+{{- end -}}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clo-csi-installation
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    helm.sh/resource-policy: keep
+immutable: true
+data:
+  installationID: {{ $id | quote }}
+  projectID: {{ $project | quote }}

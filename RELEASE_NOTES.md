@@ -1,0 +1,1 @@
+EXPERIMENTAL / NOT PRODUCTION READY. Native fresh-volume expansion in CLO remains NO-GO; complete final-image live sanity is pending. RWO/ext4 only. Includes binary, Helm chart, exact container image digest and checksums. Do not equate publication with storage acceptance. Apache-2.0.

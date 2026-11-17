@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Service
+metadata: {name: clo-csi-controller, namespace: {{ .Release.Namespace }}}
+spec:
+  type: ClusterIP
+  publishNotReadyAddresses: true
+  selector: {app.kubernetes.io/name: clo-csi, app.kubernetes.io/component: controller}
+  ports:
+    - {name: https, port: 443, targetPort: https}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: clo-csi-controller, namespace: {{ .Release.Namespace }}}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app.kubernetes.io/name: clo-csi, app.kubernetes.io/component: controller}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: clo-csi, app.kubernetes.io/component: controller}
+    spec:
+      serviceAccountName: clo-csi-controller
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 150
+      nodeSelector:
+        kubernetes.io/os: linux
+        kubernetes.io/arch: amd64
+        clo.csi.rave-technology.io/enabled: "true"
+        clo.csi.rave-technology.io/controller: "true"
+      tolerations:
+        {{- include "clo-csi.tolerations" . | nindent 8 }}
+      securityContext: {runAsNonRoot: true, runAsUser: 65532, runAsGroup: 65532, fsGroup: 65532}
+      containers:
+        - name: driver
+          image: {{ include "clo-csi.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - controller
+            - --context=in-cluster
+            - --project-id={{ .Values.projectID }}
+            - --installation-id={{ .Values.installationID }}
+            - --namespace=$(POD_NAMESPACE)
+            - --node-name=$(NODE_NAME)
+            - --pod-name=$(POD_NAME)
+            - --pod-uid=$(POD_UID)
+            - --endpoint=unix:///csi/csi.sock
+          env:
+            - {name: NODE_NAME, valueFrom: {fieldRef: {fieldPath: spec.nodeName}}}
+            - {name: POD_NAME, valueFrom: {fieldRef: {fieldPath: metadata.name}}}
+            - {name: POD_UID, valueFrom: {fieldRef: {fieldPath: metadata.uid}}}
+            - {name: POD_NAMESPACE, valueFrom: {fieldRef: {fieldPath: metadata.namespace}}}
+          ports:
+            - {name: https, containerPort: 8443}
+            - {name: health, containerPort: 9809}
+          livenessProbe: {httpGet: {path: /livez, port: health}, periodSeconds: 10, failureThreshold: 3}
+          readinessProbe: {httpGet: {path: /readyz, port: health}, periodSeconds: 5, failureThreshold: 2}
+          securityContext: {readOnlyRootFilesystem: true, allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          resources:
+            {{- toYaml .Values.controller.resources | nindent 12 }}
+          volumeMounts:
+            - {name: socket, mountPath: /csi}
+            - {name: admin, mountPath: /run/clo-csi}
+            - {name: credentials, mountPath: /etc/clo/credentials, readOnly: true}
+            - {name: tls, mountPath: /tls, readOnly: true}
+        - name: provisioner
+          image: {{ .Values.sidecars.provisioner | quote }}
+          args: [--csi-address=/csi/csi.sock, --timeout=180s, --leader-election=false, --extra-create-metadata=false, --worker-threads=1]
+          volumeMounts: [{name: socket, mountPath: /csi}]
+          resources: {requests: {cpu: 10m, memory: 32Mi}, limits: {memory: 256Mi}}
+        - name: attacher
+          image: {{ .Values.sidecars.attacher | quote }}
+          args: [--csi-address=/csi/csi.sock, --timeout=180s, --leader-election=false, --worker-threads=1]
+          volumeMounts: [{name: socket, mountPath: /csi}]
+          resources: {requests: {cpu: 10m, memory: 32Mi}, limits: {memory: 256Mi}}
+        - name: resizer
+          image: {{ .Values.sidecars.resizer | quote }}
+          args: [--csi-address=/csi/csi.sock, --timeout=180s, --leader-election=false, --workers=1]
+          volumeMounts: [{name: socket, mountPath: /csi}]
+          resources: {requests: {cpu: 10m, memory: 32Mi}, limits: {memory: 256Mi}}
+        - name: liveness
+          image: {{ .Values.sidecars.liveness | quote }}
+          args: [--csi-address=/csi/csi.sock, --http-endpoint=:9808]
+          volumeMounts: [{name: socket, mountPath: /csi}]
+          resources: {requests: {cpu: 5m, memory: 16Mi}, limits: {memory: 64Mi}}
+      volumes:
+        - {name: socket, emptyDir: {}}
+        - {name: admin, emptyDir: {medium: Memory}}
+        - name: credentials
+          secret:
+            secretName: {{ required "existingSecret is required; never put credentials in chart values" .Values.existingSecret }}
+            defaultMode: 0440
+            items: [{key: {{ .Values.existingSecretKey }}, path: token}]
+        - name: tls
+          secret: {secretName: {{ .Values.tls.existingSecret }}, defaultMode: 0440}

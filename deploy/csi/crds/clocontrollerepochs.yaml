@@ -1,0 +1,59 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: clocontrollerepochs.storage.clo.rave-technology.io
+spec:
+  group: storage.clo.rave-technology.io
+  scope: Namespaced
+  names:
+    plural: clocontrollerepochs
+    singular: clocontrollerepoch
+    kind: CloControllerEpoch
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    subresources:
+      status: {}
+    schema:
+      openAPIV3Schema:
+        type: object
+        required:
+        - spec
+        properties:
+          spec:
+            type: object
+            required:
+            - installationID
+            - projectID
+            properties:
+              initializationIntent:
+                type: object
+                required: [version, digest, status]
+                properties:
+                  version:
+                    type: string
+                    enum: [v1]
+                  digest:
+                    type: string
+                    pattern: '^[a-f0-9]{64}$'
+                  status:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+              installationID:
+                type: string
+                format: uuid
+              projectID:
+                type: string
+                format: uuid
+            x-kubernetes-validations:
+            - rule: self == oldSelf
+              message: Registry ownership spec is immutable
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+            properties:
+              initialized:
+                type: boolean
+            required:
+            - initialized

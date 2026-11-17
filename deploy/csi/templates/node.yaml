@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata: {name: clo-csi-node, namespace: {{ .Release.Namespace }}}
+spec:
+  updateStrategy: {type: RollingUpdate, rollingUpdate: {maxUnavailable: 1}}
+  selector:
+    matchLabels: {app.kubernetes.io/name: clo-csi, app.kubernetes.io/component: node}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: clo-csi, app.kubernetes.io/component: node}
+    spec:
+      serviceAccountName: clo-csi-node
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostPID: true
+      terminationGracePeriodSeconds: 150
+      nodeSelector:
+        kubernetes.io/os: linux
+        kubernetes.io/arch: amd64
+        clo.csi.rave-technology.io/enabled: "true"
+      tolerations:
+        {{- include "clo-csi.tolerations" . | nindent 8 }}
+      containers:
+        - name: driver
+          image: {{ include "clo-csi.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - node
+            - --context=in-cluster
+            - --project-id={{ .Values.projectID }}
+            - --installation-id={{ .Values.installationID }}
+            - --namespace=$(POD_NAMESPACE)
+            - --node-name=$(NODE_NAME)
+            - --endpoint=unix://{{ .Values.kubeletRoot }}/plugins/clo.csi.rave-technology.io/csi.sock
+            - --kubelet-root={{ .Values.kubeletRoot }}
+            - --journal-dir={{ .Values.journalRoot }}
+          env:
+            - {name: NODE_NAME, valueFrom: {fieldRef: {fieldPath: spec.nodeName}}}
+            - {name: POD_NAMESPACE, valueFrom: {fieldRef: {fieldPath: metadata.namespace}}}
+          ports: [{name: health, containerPort: 9809}]
+          livenessProbe: {httpGet: {path: /livez, port: health}, periodSeconds: 10, failureThreshold: 3}
+          readinessProbe: {httpGet: {path: /readyz, port: health}, periodSeconds: 5, failureThreshold: 2}
+          securityContext: {privileged: true, runAsUser: 0, runAsGroup: 0, readOnlyRootFilesystem: true}
+          resources:
+            {{- toYaml .Values.node.resources | nindent 12 }}
+          volumeMounts:
+            - {name: devices, mountPath: /dev}
+            - {name: udev, mountPath: /run/udev, readOnly: true}
+            - {name: kubelet, mountPath: {{ .Values.kubeletRoot }}, mountPropagation: Bidirectional}
+            - {name: journal, mountPath: {{ .Values.journalRoot }}}
+            - {name: identity, mountPath: /etc/clo/machine-identity.json, readOnly: true}
+            - {name: token, mountPath: /var/run/clo-csi, readOnly: true}
+            - {name: ca, mountPath: /tls, readOnly: true}
+        - name: registrar
+          image: {{ .Values.sidecars.registrar | quote }}
+          args:
+            - --csi-address=/csi/csi.sock
+            - --kubelet-registration-path={{ .Values.kubeletRoot }}/plugins/clo.csi.rave-technology.io/csi.sock
+          volumeMounts:
+            - {name: plugin, mountPath: /csi}
+            - {name: registration, mountPath: /registration}
+          resources: {requests: {cpu: 5m, memory: 16Mi}, limits: {memory: 64Mi}}
+      volumes:
+        - {name: devices, hostPath: {path: /dev, type: Directory}}
+        - {name: udev, hostPath: {path: /run/udev, type: DirectoryOrCreate}}
+        - {name: kubelet, hostPath: {path: {{ .Values.kubeletRoot }}, type: Directory}}
+        - {name: journal, hostPath: {path: {{ .Values.journalRoot }}, type: DirectoryOrCreate}}
+        - {name: identity, hostPath: {path: /etc/clo/machine-identity.json, type: File}}
+        - {name: plugin, hostPath: {path: {{ .Values.kubeletRoot }}/plugins/clo.csi.rave-technology.io, type: DirectoryOrCreate}}
+        - {name: registration, hostPath: {path: {{ .Values.kubeletRoot }}/plugins_registry, type: DirectoryOrCreate}}
+        - name: token
+          projected:
+            defaultMode: 0400
+            sources:
+              - serviceAccountToken: {audience: clo-csi-node, expirationSeconds: 600, path: token}
+        - name: ca
+          secret:
+            secretName: {{ .Values.tls.existingSecret }}
+            items: [{key: ca.crt, path: ca.crt}]

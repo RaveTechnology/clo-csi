@@ -1,0 +1,23 @@
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  name: clo.csi.rave-technology.io
+spec:
+  attachRequired: true
+  podInfoOnMount: true
+  fsGroupPolicy: File
+  storageCapacity: false
+  requiresRepublish: false
+  volumeLifecycleModes: [Persistent]
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: clo-volumes
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+    helm.sh/resource-policy: keep
+provisioner: clo.csi.rave-technology.io
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
