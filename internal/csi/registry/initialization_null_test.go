@@ -161,6 +161,12 @@ func TestLocalAPITypedOperationInitializationAndStatusCAS(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		value, present, err := unstructured.NestedFieldNoCopy(raw.Object, "spec", "apiVolumeIDs")
+		wire, marshalErr := json.Marshal(value)
+		want := []string{"null", "[]", `["known-boot"]`}[i]
+		if err != nil || marshalErr != nil || !present || string(wire) != want {
+			t.Fatalf("raw stored list was pruned or changed: present=%v wire=%s want=%s err=%v", present, wire, want, err)
+		}
 		delete(raw.Object, "status")
 		if _, err = ri.UpdateStatus(ctx, raw, metav1.UpdateOptions{}); err != nil {
 			t.Fatal(err)

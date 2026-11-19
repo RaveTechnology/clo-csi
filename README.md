@@ -2,7 +2,8 @@
 
 **Предварительный выпуск0.1.0-rc.2; production gate закрыт.** Свежий native volume
 resize в CLO воспроизводимо переходил в ERROR, включая прямой API без CSI.
-Полный live sanity:50PASS/2FAIL/1pending; это не production-ready CSI.
+Исторический live sanity от16.11.2026:50PASS/2FAIL/1pending;
+это не результат полного прогона rc.2 и не production-ready CSI.
 
 
 `clo.csi.rave-technology.io` создаёт **новые RWO/ext4 Filesystem** PVC. Несколько pod

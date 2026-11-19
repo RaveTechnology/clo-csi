@@ -49,6 +49,9 @@ func (c *Coordinator) Expand(ctx context.Context, handle string, required, limit
 		return 0, protocol.Fail(protocol.RecoveryRequired, "invalid actual size")
 	}
 	if a.SizeGB >= gb {
+		if a.Status != "AVAILABLE" && a.Status != "IN_USE" {
+			return 0, protocol.Fail(protocol.RecoveryRequired, "reported expansion capacity is not ready")
+		}
 		if limit > 0 && int64(a.SizeGB)*GiB > limit {
 			return 0, protocol.Fail(protocol.Invalid, "existing size exceeds limit")
 		}
@@ -63,6 +66,9 @@ func (c *Coordinator) Expand(ctx context.Context, handle string, required, limit
 			if readErr == nil && fresh.Status.PendingOp == "" && !fresh.Status.Deleted && !fresh.Status.Retired && !fresh.Status.Quarantined {
 				actual, readErr := c.ownedVolume(ctx, fresh)
 				if readErr == nil && actual.SizeGB >= gb {
+					if actual.Status != "AVAILABLE" && actual.Status != "IN_USE" {
+						return 0, protocol.Fail(protocol.RecoveryRequired, "reported expansion capacity is not ready")
+					}
 					if rangeErr := actualCapacity(actual.SizeGB, limit); rangeErr != nil {
 						return 0, rangeErr
 					}
