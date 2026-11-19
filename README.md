@@ -1,6 +1,6 @@
 # CLO CSI
 
-**Предварительный выпуск0.1.0-rc.1; production gate закрыт.** Свежий native volume
+**Предварительный выпуск0.1.0-rc.2; production gate закрыт.** Свежий native volume
 resize в CLO воспроизводимо переходил в ERROR, включая прямой API без CSI.
 Полный live sanity:50PASS/2FAIL/1pending; это не production-ready CSI.
 

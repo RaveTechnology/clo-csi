@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-rc.1",
+  "version": "0.1.0-rc.2",
   "productionReady": false,
-  "reason": "Fresh native CLO volume resize ERROR; final full live sanity pending"
+  "reason": "Fresh detached native CLO volume expansion remains ERROR; final full live sanity pending"
 }
