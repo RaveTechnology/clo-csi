@@ -73,6 +73,7 @@ spec:
                 x-kubernetes-preserve-unknown-fields: true
               apiVolumeIDs:
                 type: array
+                nullable: true
                 items:
                   type: string
               deadline:

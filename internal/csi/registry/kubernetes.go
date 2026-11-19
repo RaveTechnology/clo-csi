@@ -68,6 +68,14 @@ func asDocument(obj *unstructured.Unstructured) (Document, error) {
 	}
 	domainSpec, _, _ := unstructured.NestedMap(obj.Object, "spec")
 	delete(domainSpec, intentKey)
+	if intent, found, _ := unstructured.NestedMap(obj.Object, "spec", intentKey); found {
+		status, _ := intent["status"].(map[string]any)
+		digest, _ := intent["digest"].(string)
+		if original, legacy := legacyPrunedOperationSpec(obj, status, digest); legacy {
+			// Keep typed status CAS equivalent to the original committed request.
+			domainSpec = original
+		}
+	}
 	spec, e := json.Marshal(domainSpec)
 	if e != nil {
 		return Document{}, e

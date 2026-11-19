@@ -21,9 +21,31 @@ const initializedAnnotation = Group + "/initialization-complete"
 func intentDigest(obj *unstructured.Unstructured, status map[string]any) string {
 	spec, _, _ := unstructured.NestedMap(obj.Object, "spec")
 	delete(spec, intentKey)
+	return initializationDigest(obj, spec, status)
+}
+func initializationDigest(obj *unstructured.Unstructured, spec, status map[string]any) string {
 	raw, _ := json.Marshal([]any{obj.GetNamespace(), obj.GetKind(), obj.GetName(), spec, status})
 	sum := sha256.Sum256(raw)
 	return hex.EncodeToString(sum[:])
+}
+
+// The former CRD pruned apiVolumeIDs:null from operation specs. Reconstruct
+// only that known loss, and only if the original immutable hash proves it.
+// The persisted spec and its commitment are never rewritten.
+func legacyPrunedOperationSpec(obj *unstructured.Unstructured, status map[string]any, digest string) (map[string]any, bool) {
+	if obj.GetKind() != KindOperation || digest == "" {
+		return nil, false
+	}
+	spec, _, _ := unstructured.NestedMap(obj.Object, "spec")
+	if _, present := spec["apiVolumeIDs"]; present {
+		return nil, false
+	}
+	delete(spec, intentKey)
+	spec["apiVolumeIDs"] = nil
+	if initializationDigest(obj, spec, status) != digest {
+		return nil, false
+	}
+	return spec, true
 }
 func creationIntent(obj *unstructured.Unstructured) (map[string]any, string, error) {
 	intent, found, e := unstructured.NestedMap(obj.Object, "spec", intentKey)
@@ -32,8 +54,13 @@ func creationIntent(obj *unstructured.Unstructured) (map[string]any, string, err
 	}
 	status, ok := intent["status"].(map[string]any)
 	digest, _ := intent["digest"].(string)
-	if !ok || status["initialized"] != true || intent["version"] != "v1" || digest == "" || digest != intentDigest(obj, status) {
+	if !ok || status["initialized"] != true || intent["version"] != "v1" || digest == "" {
 		return nil, "", protocol.Fail(protocol.RecoveryRequired, "invalid immutable initialization intent")
+	}
+	if digest != intentDigest(obj, status) {
+		if _, legacy := legacyPrunedOperationSpec(obj, status, digest); !legacy {
+			return nil, "", protocol.Fail(protocol.RecoveryRequired, "invalid immutable initialization intent")
+		}
 	}
 	return status, digest, nil
 }
