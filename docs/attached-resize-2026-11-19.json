@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-19",
+  "status": "bounded-mounted-PVC-expansion-passed",
+  "productionReady": false,
+  "release": {
+    "version": "0.1.0-rc.2",
+    "image": "ghcr.io/ravetechnology/clo-csi@sha256:2037024fee66acef0cb360fb3e59a47e8ebd7eac964700b4cebc56443bd66d1b",
+    "binarySHA256": "8b7d9d5180a88a7ed3dff386fe2c0a8f794ce6373b08c169b90a062b0cc656c1",
+    "sourceCommit": "00dedf7a062e1b9ddbda6434b3b2fef7659caa34",
+    "actualDriverBinariesAndImageIDsVerified": true,
+    "candidateOverridesAbsentInReleasedImageTest": true
+  },
+  "topology": {
+    "privateRKE2Nodes": 1,
+    "RKE2": "v1.36.5+rke2r1",
+    "sharedVCPU": 2,
+    "ramGB": 8,
+    "bootGB": 30,
+    "temporaryNATGateways": 1,
+    "newReservedPublicIPv4": 0,
+    "mode": "RWO/ext4"
+  },
+  "cases": [
+    {
+      "runtime": "candidate binary on pinned rc.1 runtime",
+      "observedSecondsFromPVCPatch": 46.57362079620361,
+      "initialPVCGiB": 10,
+      "finalPVCGiB": 12,
+      "finalNativeStatus": "IN_USE",
+      "initialBlockBytes": 10739277824,
+      "finalBlockBytes": 12886302720,
+      "initialFilesystemBytes": 10463694848,
+      "finalFilesystemBytes": 12573220864,
+      "originalSHA256AndInodePreserved": true,
+      "serialAndFSUUIDPreserved": true,
+      "workloadPodUIDPreserved": true,
+      "workloadRestarts": 0,
+      "writerCounterDeltaAcrossSnapshots": 52,
+      "independentPayloadReadbackBytes": 67108864,
+      "independentPayloadSHA256Matches": true,
+      "registrySentCompletedExtendOperations": 1,
+      "registrySentFormatGrants": 1
+    },
+    {
+      "runtime": "candidate binary on pinned rc.1 runtime",
+      "observedSecondsFromPVCPatch": 47.10596251487732,
+      "initialPVCGiB": 10,
+      "finalPVCGiB": 12,
+      "finalNativeStatus": "IN_USE",
+      "initialBlockBytes": 10739277824,
+      "finalBlockBytes": 12886302720,
+      "initialFilesystemBytes": 10463694848,
+      "finalFilesystemBytes": 12573220864,
+      "originalSHA256AndInodePreserved": true,
+      "serialAndFSUUIDPreserved": true,
+      "workloadPodUIDPreserved": true,
+      "workloadRestarts": 0,
+      "writerCounterDeltaAcrossSnapshots": 52,
+      "independentPayloadReadbackBytes": 67108864,
+      "independentPayloadSHA256Matches": true,
+      "registrySentCompletedExtendOperations": 1,
+      "registrySentFormatGrants": 1
+    },
+    {
+      "runtime": "published rc.2 image",
+      "observedSecondsFromPVCPatch": 50.2201874256134,
+      "initialPVCGiB": 10,
+      "finalPVCGiB": 12,
+      "finalNativeStatus": "IN_USE",
+      "initialBlockBytes": 10739277824,
+      "finalBlockBytes": 12886302720,
+      "initialFilesystemBytes": 10463694848,
+      "finalFilesystemBytes": 12573220864,
+      "originalSHA256AndInodePreserved": true,
+      "serialAndFSUUIDPreserved": true,
+      "workloadPodUIDPreserved": true,
+      "workloadRestarts": 0,
+      "writerCounterDeltaAcrossSnapshots": 56,
+      "independentPayloadReadbackBytes": 67108864,
+      "independentPayloadSHA256Matches": true,
+      "registrySentCompletedExtendOperations": 1,
+      "registrySentFormatGrants": 1
+    }
+  ],
+  "remount": {
+    "newPodSamePVC": true,
+    "original64MiBSHA256Preserved": true,
+    "sameNativeVolumeSerialAndFSUUID": true,
+    "sentFormatGrants": 1
+  },
+  "repair": {
+    "operationNullArrayPreservedByCRD": true,
+    "legacyOriginalUIDSpecAndDigestPreserved": true,
+    "usedOrLostSealedStatusNotReset": true,
+    "reportedCapacityInERROROrTransitionalStateRejected": true,
+    "rawSchemaPresenceAndStatusCASVerifiedOnRealKubernetesAPI": true
+  },
+  "cleanup": {
+    "ownDataVolumesGone": 3,
+    "ownVMAndBootGone": true,
+    "ownNATGone": true,
+    "allOriginalNativeIDsPreserved": true,
+    "baselineCountsRestored": {
+      "servers": 1,
+      "volumes": 1,
+      "addresses": 3,
+      "vrouters": 0,
+      "loadbalancers": 0,
+      "keypairs": 0
+    },
+    "permanentRancher": {
+      "sharedVCPU": 2,
+      "ramGB": 8,
+      "bootGB": 60
+    },
+    "protectedRancherHTTPSAndManagementReady": true,
+    "protectedCredentialUIDPreserved": true,
+    "ownSSHForwardClosed": true,
+    "customerDataOrProductionChanged": false,
+    "newTelegramTests": 0
+  },
+  "limits": [
+    "Detached fresh native disk expansion still reached ERROR directly through CLO API.",
+    "Not a full final-image csi-sanity pass, production acceptance, HA, load test or SLA.",
+    "One private RKE2 node; cross-node relocation and fencing were not retested in this run.",
+    "Registry send/completion counts are recorded; all provider-side HTTP POSTs and later behavior were not independently traced.",
+    "Observed timings include polling and inspection overhead; counter deltas span the before/after snapshots.",
+    "Only new synthetic PVCs and generated payloads; no customer data, migration or production telephony."
+  ]
+}

@@ -1,7 +1,9 @@
 # CLO CSI
 
-**Предварительный выпуск0.1.0-rc.2; production gate закрыт.** Свежий native volume
-resize в CLO воспроизводимо переходил в ERROR, включая прямой API без CSI.
+**Предварительный выпуск0.1.0-rc.2; production gate закрыт.** Расширение
+подключённого PVC 10→12 ГиБ проверено на опубликованном rc.2 с сохранением
+данных и работающим pod. Свежий свободный native volume при расширении
+в CLO воспроизводимо переходил в ERROR, включая прямой API без CSI.
 Исторический live sanity от16.11.2026:50PASS/2FAIL/1pending;
 это не результат полного прогона rc.2 и не production-ready CSI.
 
@@ -14,6 +16,7 @@ snapshot и clone не реализованы. Production gate закрыт: п�
 или исправление CLO и новый успешный полный прогон. Recovery/backup, реальный
 RW resize зрелого PVC и сохранность данных проверены отдельно. Результаты:
 [CSI acceptance](docs/acceptance.md).
+Проверка работающих подключённых PVC на rc.2: [результаты 19.11](docs/attached-resize-2026-11-19.md).
 Дизайн и ограничения:
 [CSI design](docs/design.md).
 
