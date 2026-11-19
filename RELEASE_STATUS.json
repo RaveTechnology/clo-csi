@@ -1,5 +1,5 @@
 {
   "version": "0.1.0-rc.2",
   "productionReady": false,
-  "reason": "Fresh detached native CLO volume expansion remains ERROR; final full live sanity pending"
+  "reason": "Full rc.2 live sanity: 50 passed, 2 failed, 50 skipped, 1 pending; fresh detached native CLO expansion remains ERROR"
 }

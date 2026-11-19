@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-19",
+  "productionReady": false,
+  "status": "full-default-sanity-completed-with-native-detached-resize-failures",
+  "release": {
+    "version": "0.1.0-rc.2",
+    "sourceCommit": "00dedf7a062e1b9ddbda6434b3b2fef7659caa34",
+    "image": "ghcr.io/ravetechnology/clo-csi@sha256:2037024fee66acef0cb360fb3e59a47e8ebd7eac964700b4cebc56443bd66d1b",
+    "binarySHA256": "8b7d9d5180a88a7ed3dff386fe2c0a8f794ce6373b08c169b90a062b0cc656c1",
+    "actualControllerAndNodeVerifiedBeforeAndAfter": true,
+    "sameDriverPodsAndZeroRestarts": true
+  },
+  "suite": {
+    "name": "kubernetes-csi/csi-test",
+    "version": "v5.6.0",
+    "durationSeconds": 2929.438983440399,
+    "specifications": 103,
+    "states": {
+      "skipped": 50,
+      "passed": 50,
+      "pending": 1,
+      "failed": 2
+    },
+    "manualFocusOrSkipFilters": false,
+    "failFast": false,
+    "unsupportedCapabilitySkips": 49,
+    "defaultDisabledAttachLimitTest": 1,
+    "pendingUpstreamTests": [
+      "Controller Service [Controller Server] ListVolumes pagination should detect volumes added between pages and accept tokens when the last volume from a page is deleted"
+    ],
+    "skipReasons": {
+      "ControllerGetVolumeHealth not supported": 2,
+      "GroupControllerService not supported": 6,
+      "ControllerModifyVolume not supported": 6,
+      "CreateSnapshot not supported": 6,
+      "GetCapacity not supported": 1,
+      "ListVolumes not supported": 3,
+      "Snapshot not supported": 2,
+      "Volume Cloning not supported": 2,
+      "Modify volume not supported": 1,
+      "Modify Volume not supported": 1,
+      "testnodevolumeattachlimit not enabled": 1,
+      "ControllerPublishVolume.readonly field not supported": 1,
+      "DeleteSnapshot not supported": 3,
+      "ListSnapshots not supported": 7,
+      "ControllerListVolumeHealth not supported": 1,
+      "Service does not have single node multi writer capability": 1,
+      "NodeGetVolumeHealth not supported": 2,
+      "NodeGetStorageHealth not supported": 1,
+      "GetSnapshot not supported": 3
+    },
+    "harnessSourceMatchesReleaseExceptPrivateExplicitProjectGate": true,
+    "harnessBinarySHA256": "604eb69ba51332bf11f744c7184035e9bf2583379ae9cf921506ed3a1065936f"
+  },
+  "topology": {
+    "RKE2": "v1.36.5+rke2r1",
+    "privateNodes": 1,
+    "sharedVCPU": 2,
+    "ramGB": 8,
+    "bootGB": 30,
+    "temporaryNAT": 1,
+    "newPublicIPv4": 0
+  },
+  "failures": [
+    {
+      "title": "Node Service NodeExpandVolume should work if node-expand is called after node-publish",
+      "primaryFailure": "FailedPrecondition: native detached expansion unresolved",
+      "additionalAfterEachFailures": 1
+    },
+    {
+      "title": "ExpandVolume [Controller Server] should work",
+      "primaryFailure": "FailedPrecondition: native detached expansion unresolved",
+      "additionalAfterEachFailures": 1
+    }
+  ],
+  "nativeEvidence": {
+    "failedVolumes": 2,
+    "beforeExpansion": "fresh detached volume, 10 GiB",
+    "requestedSizeGiB": 12,
+    "afterExpansionStatus": "ERROR",
+    "reportedSizeGiB": 12,
+    "attachedToServer": false,
+    "registryExtendPhase": "Uncertain",
+    "sentExtendOperationsPerFailedVolume": 1,
+    "eachAdditionalAfterEachFailure": "CSI deletion blocked by unresolved extend; not another failing specification",
+    "allProviderHTTPAttemptsIndependentlyTraced": false
+  },
+  "cleanup": {
+    "allOwnedNativeDataIdentitiesVerifiedGone": 19,
+    "remainingErrorDisksDeleted": 2,
+    "ownVMAndBootGone": true,
+    "ownNATGone": true,
+    "baselineCountsRestored": {
+      "servers": 1,
+      "volumes": 1,
+      "addresses": 3,
+      "vrouters": 0,
+      "loadbalancers": 0,
+      "keypairs": 0
+    },
+    "permanentRancherVCPU": 2,
+    "permanentRancherRAMGB": 8,
+    "permanentRancherBootGB": 60,
+    "managementReadyHTTPSAndProtectedUIDsPreserved": true,
+    "reservedIPv4Preserved": true,
+    "noOwnedForwardRemains": true
+  },
+  "limits": [
+    "Default-disabled ninth-attachment limit test was not enabled; no new qualification of the eight-disk limit.",
+    "One private node; HA, cross-node relocation, fencing, load and SLA were not retested.",
+    "Mounted PVC expansion and original-data readback were tested separately; see the attached-resize report.",
+    "Read-only observer suffered an SSH interruption and an observer-script indentation error; same remote suite continued without relaunch.",
+    "Raw logs, native identities, credentials, keys, kubeconfigs and private project-specific harness are not published.",
+    "No customer data, production application, DNS or telephony changes; no new Telegram tests."
+  ]
+}

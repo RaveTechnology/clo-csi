@@ -4,8 +4,8 @@
 подключённого PVC 10→12 ГиБ проверено на опубликованном rc.2 с сохранением
 данных и работающим pod. Свежий свободный native volume при расширении
 в CLO воспроизводимо переходил в ERROR, включая прямой API без CSI.
-Исторический live sanity от16.11.2026:50PASS/2FAIL/1pending;
-это не результат полного прогона rc.2 и не production-ready CSI.
+Полный csi-sanity на rc.2 от19.11.2026:50PASS/2FAIL/50SKIP/1PENDING;
+оба сбоя — расширение свежего свободного диска. [Результаты](docs/full-sanity-2026-11-19.md).
 
 
 `clo.csi.rave-technology.io` создаёт **новые RWO/ext4 Filesystem** PVC. Несколько pod

@@ -8,7 +8,8 @@ Production: NO-GO. Исторический полный live CSI sanity от16.
 Отдельно проверены RWO/ext4 create/mount/data hashes, reboot и8дисков, штатный
 перенос PVC, явное выключение потерянной VM, recovery/restore и зрелый RW resize.
 Последующие safety fixes подтверждены unit/race и15cases на реальном local
-Kubernetes API; повторного полного native sanity финального образа ещё не было.
+Kubernetes API; повторный полный native sanity опубликованного rc.2 выполнен19.11;
+результат50PASS/2FAIL/50SKIP/1PENDING, см. итог ниже.
 
 Публичная упаковка и отдельный Go-модуль не закрывают эти ограничения.
 
@@ -37,3 +38,11 @@ status. Подключённые PVC 10→12 ГиБ прошли три отде
 Полный production gate остаётся закрытым: этот ограниченный эксперимент
 не заменяет полный csi-sanity финального образа и не устраняет native ERROR
 при расширении свободного диска.
+
+## Полный повторный прогон rc.2 — 19.11.2026
+
+50 passed / 2 failed / 50 skipped / 1 pending; оба провала на свежих
+свободных томах с native ERROR после10→12ГиБ. Из пропусков49unsupported,
+одинdefault-disabled attach-limit; тест лимита здесь заново не выполнялся.
+[Полный отчёт и ограничения](full-sanity-2026-11-19.md). Стенд очищен,
+исходный состав проекта подтверждён; production NO-GO сохраняется.
