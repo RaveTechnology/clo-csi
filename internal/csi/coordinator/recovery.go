@@ -300,6 +300,21 @@ func (c *Coordinator) reconciliation(ctx context.Context, op registry.OperationR
 		if a.SizeGB < op.Spec.TargetSizeGB || (a.Status != "AVAILABLE" && a.Status != "IN_USE") {
 			return nil, protocol.Fail(protocol.RecoveryRequired, "extend terminal postcondition absent; no resend")
 		}
+		// New attached-only operations retain both claims until the exact saved
+		// attachment and guest serial are proven. Older unbound intents keep their
+		// original read-only capacity reconciliation contract.
+		if op.Spec.NodeBindingID != "" {
+			if v.Status.NodeBindingID != op.Spec.NodeBindingID {
+				return nil, protocol.Fail(protocol.RecoveryRequired, "extend binding changed; no resend")
+			}
+			n, err := c.expansionNode(ctx, v, a)
+			if err != nil {
+				return nil, protocol.Fail(protocol.RecoveryRequired, "extend attachment unresolved; no resend: %v", err)
+			}
+			if err = c.expansionGuest(ctx, v, n); err != nil {
+				return nil, protocol.Fail(protocol.RecoveryRequired, "extend guest inventory unresolved; no resend: %v", err)
+			}
+		}
 		if e := actualCapacity(a.SizeGB, op.Spec.LimitBytes); e != nil {
 			return nil, e
 		}

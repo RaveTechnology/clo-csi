@@ -4,7 +4,10 @@ rc.3 rejects actual growth unless CLO reports IN_USE on the volume's registered,
 active node. Detached growth returns FailedPrecondition before creating an
 operation or sending a native POST. Attach the PVC to a running pod before
 retrying. Already satisfied capacity remains idempotent without a cloud write.
-Growth holds both node and volume claims and rechecks attachment before dispatch.
+Growth holds both node and volume claims and rechecks attachment plus the agent’s
+live guest serial inventory before dispatch. Recovery of a bound extend requires
+the same attachment and inventory before releasing either claim; uncertain native
+requests are never resent.
 Do not detach a disk through the cloud console while it is being expanded.
 The resizer uses --handle-volume-inuse-error=false so a detached precondition
 failure can be retried after attachment instead of waiting for the pod to stop.
@@ -14,7 +17,9 @@ a provider fix. CSI ONLINE permits requests at any lifecycle stage after create;
 detached growth is deliberately rejected here because CLO corrupts its state.
 The full rc.2 suite on19 November had50PASS/2FAIL/50SKIP/1pending, with both failures
 on fresh detached expansion; separate attached-PVC growth passed. Live rc.3
-profile acceptance is recorded separately from those historical results.
+profile acceptance passed online growth, detached rejection and cross-node
+reattachment followed by growth; see docs/attached-profile-2026-11-20.md.
+Exact published runtime verification is a separate deployment step.
 
 Includes the rc.2 fix for typed operation records: the CloOperation CRD preserves
 apiVolumeIDs:null instead of pruning it and invalidating the immutable intent.

@@ -2,6 +2,7 @@ package coordinator
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/RaveTechnology/clo-csi/internal/csi/protocol"
@@ -160,5 +161,117 @@ func TestDetachedSatisfiedCapacityRemainsIdempotentWithoutMutation(t *testing.T)
 	size, err := h.c.Expand(context.Background(), h.r.Handle(v.Status.ProviderID), 10<<30, 0)
 	if err != nil || size != 10<<30 || h.api.extendCalls != 0 {
 		t.Fatalf("no-op capacity observation mutated volume: size=%d err=%v POSTs=%d", size, err, h.api.extendCalls)
+	}
+}
+
+type changedResizeInventory struct {
+	protocol.Channel
+	serial  string
+	replace bool
+}
+
+func (x changedResizeInventory) Exchange(ctx context.Context, job protocol.Job) (protocol.Receipt, error) {
+	r, e := x.Channel.Exchange(ctx, job)
+	if e == nil && job.Type == "baseline" {
+		disks := make([]protocol.Disk, 0, len(r.Snapshot.Disks))
+		for _, d := range r.Snapshot.Disks {
+			if d.Serial == x.serial {
+				if !x.replace {
+					continue
+				}
+				d.Serial = "replacement-serial"
+			}
+			disks = append(disks, d)
+		}
+		r.Snapshot.Disks = disks
+	}
+	return r, e
+}
+func TestGrowthRequiresLiveGuestSerialAfterClaims(t *testing.T) {
+	for _, replace := range []bool{false, true} {
+		t.Run(fmt.Sprint(replace), func(t *testing.T) {
+			b := claimBackend(func(s registry.OperationSpec) bool { return s.Type == "extend" })
+			h := setupBackend(t, true, b)
+			v := published(t, h)
+			b.armed.Store(true)
+			done := make(chan error, 1)
+			go func() {
+				_, e := h.c.Expand(context.Background(), h.r.Handle(v.Status.ProviderID), 12<<30, 0)
+				done <- e
+			}()
+			waitClaim(t, b)
+			h.c.nodes = changedResizeInventory{h.channel, v.Status.Serial, replace}
+			close(b.resume)
+			e := <-done
+			if e == nil || h.api.extendCalls != 0 {
+				t.Fatalf("missing/replaced guest serial reached extend: %v POSTs=%d", e, h.api.extendCalls)
+			}
+			current, _ := h.r.Volume(context.Background(), v.Name)
+			n, _ := h.r.Node(context.Background(), h.node.BindingID)
+			if current.Status.PendingOp != "" || n.Status.PendingEnrollment != "" {
+				t.Fatal("unsent growth kept claims")
+			}
+		})
+	}
+}
+func TestBoundGrowthRecoveryPreservesAttachmentAndClaimsWithoutResending(t *testing.T) {
+	for _, state := range []string{"detached", "foreign-server", "bound"} {
+		t.Run(state, func(t *testing.T) {
+			h := setup(t, true)
+			v := published(t, h)
+			ctx := context.Background()
+			h.api.extendErr = context.DeadlineExceeded
+			_, e := h.c.Expand(ctx, h.r.Handle(v.Status.ProviderID), 12<<30, 0)
+			if e == nil || h.api.extendCalls != 1 {
+				t.Fatal("uncertain dispatch not reproduced")
+			}
+			h.api.mu.Lock()
+			a := h.api.volumes[v.Status.ProviderID]
+			a.SizeGB = 12
+			if state == "detached" {
+				a.Status = "AVAILABLE"
+				a.AttachedServerID = ""
+			}
+			if state == "foreign-server" {
+				a.AttachedServerID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+			}
+			h.api.volumes[a.ID] = a
+			h.api.mu.Unlock()
+			size, e := h.c.Expand(ctx, h.r.Handle(v.Status.ProviderID), 12<<30, 0)
+			current, _ := h.r.Volume(ctx, v.Name)
+			n, _ := h.r.Node(ctx, h.node.BindingID)
+			if h.api.extendCalls != 1 {
+				t.Fatal("native extend resent")
+			}
+			if state == "bound" {
+				if e != nil || size != 12<<30 || current.Status.PendingOp != "" || n.Status.PendingEnrollment != "" {
+					t.Fatalf("matching recovery failed: %d %v", size, e)
+				}
+			} else if e == nil || current.Status.PendingOp == "" || n.Status.PendingEnrollment == "" {
+				t.Fatalf("mismatched recovery released claims: %d %v", size, e)
+			}
+		})
+	}
+}
+func TestLegacyUnboundGrowthRecoveryRemainsReadOnly(t *testing.T) {
+	h := setup(t, true)
+	v := create(t, h, "legacy-grow")
+	ctx := context.Background()
+	op, e := h.c.newOperation(ctx, "extend", v, nil, protocol.Snapshot{}, nil, 12, 0)
+	if e != nil {
+		t.Fatal(e)
+	}
+	e = h.c.send(ctx, op, func() error { return context.DeadlineExceeded })
+	if e == nil {
+		t.Fatal("expected uncertain send")
+	}
+	h.api.mu.Lock()
+	a := h.api.volumes[v.Status.ProviderID]
+	a.SizeGB = 12
+	h.api.volumes[a.ID] = a
+	h.api.mu.Unlock()
+	size, e := h.c.Expand(ctx, h.r.Handle(v.Status.ProviderID), 12<<30, 0)
+	if e != nil || size != 12<<30 || h.api.extendCalls != 0 {
+		t.Fatalf("legacy reconcile changed: %d %v", size, e)
 	}
 }

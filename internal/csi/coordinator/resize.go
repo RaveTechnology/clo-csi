@@ -96,6 +96,9 @@ func (c *Coordinator) Expand(ctx context.Context, handle string, required, limit
 		if e == nil && (bound.Name != n.Name || bound.Spec.Ref != n.Spec.Ref) {
 			e = protocol.Fail(protocol.Blocked, "expansion attachment changed before dispatch")
 		}
+		if e == nil {
+			e = c.expansionGuest(ctx, latest, bound)
+		}
 	}
 	if e != nil {
 		c.abortPrepared(ctx, op)
@@ -154,4 +157,13 @@ func (c *Coordinator) expansionNode(ctx context.Context, v registry.VolumeRecord
 		return none, protocol.Fail(protocol.Blocked, "expansion requires an active registered VM with the attached volume")
 	}
 	return n, nil
+}
+
+func (c *Coordinator) expansionGuest(ctx context.Context, v registry.VolumeRecord, n registry.NodeRecord) error {
+	r, e := c.exchange(ctx, "baseline", n.Spec.Ref, volumeRef(c.repo, v), protocol.IssuerDescriptor{}, "", "")
+	if e != nil {
+		return e
+	}
+	_, e = c.checkInventory(ctx, n, r.Snapshot, "")
+	return e
 }
