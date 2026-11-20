@@ -6,6 +6,8 @@ operation or sending a native POST. Attach the PVC to a running pod before
 retrying. Already satisfied capacity remains idempotent without a cloud write.
 Growth holds both node and volume claims and rechecks attachment before dispatch.
 Do not detach a disk through the cloud console while it is being expanded.
+The resizer uses --handle-volume-inuse-error=false so a detached precondition
+failure can be retried after attachment instead of waiting for the pod to stop.
 
 This is an attached-only provider profile, not unrestricted CSI conformance or
 a provider fix. CSI ONLINE permits requests at any lifecycle stage after create;

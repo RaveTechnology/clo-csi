@@ -75,7 +75,7 @@ spec:
           resources: {requests: {cpu: 10m, memory: 32Mi}, limits: {memory: 256Mi}}
         - name: resizer
           image: {{ .Values.sidecars.resizer | quote }}
-          args: [--csi-address=/csi/csi.sock, --timeout=180s, --leader-election=false, --workers=1]
+          args: [--csi-address=/csi/csi.sock, --timeout=180s, --leader-election=false, --workers=1, --handle-volume-inuse-error=false]
           volumeMounts: [{name: socket, mountPath: /csi}]
           resources: {requests: {cpu: 10m, memory: 32Mi}, limits: {memory: 256Mi}}
         - name: liveness
