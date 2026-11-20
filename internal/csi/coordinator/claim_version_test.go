@@ -48,7 +48,7 @@ func waitClaim(t *testing.T, b *beforeClaimBackend) {
 func TestConcurrentCompletedLargerExpandCannotBeFollowedByStaleShrink(t *testing.T) {
 	b := claimBackend(func(s registry.OperationSpec) bool { return s.Type == "extend" && s.TargetSizeGB == 11 })
 	h := setupBackend(t, true, b)
-	v := create(t, h, "race-grow")
+	v := published(t, h)
 	handle := h.r.Handle(v.Status.ProviderID)
 	b.armed.Store(true)
 	type result struct {

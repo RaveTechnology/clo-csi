@@ -30,7 +30,7 @@ func TestExpandConflictCannotAcceptUnreadyReportedCapacity(t *testing.T) {
 		t.Run(status, func(t *testing.T) {
 			b := claimBackend(func(s registry.OperationSpec) bool { return s.Type == "extend" && s.TargetSizeGB == 11 })
 			h := setupBackend(t, true, b)
-			v := create(t, h, "unready-conflicting-grow")
+			v := published(t, h)
 			handle := h.r.Handle(v.Status.ProviderID)
 			b.armed.Store(true)
 			type result struct {

@@ -39,7 +39,7 @@ func TestProviderOversizeDoesNotSatisfyUpperBound(t *testing.T) {
 	_, e := h.c.EnsureVolume(context.Background(), q)
 	mustBlocked(t, e)
 	h2 := setup(t, true)
-	v := create(t, h2, "pvc-a")
+	v := published(t, h2)
 	h2.api.extendSizeOverride = 20
 	_, e = h2.c.Expand(context.Background(), h2.r.Handle(v.Status.ProviderID), 12<<30, 13<<30)
 	mustBlocked(t, e)
@@ -97,10 +97,13 @@ func TestRegistryCannotRewindCompletedFormat(t *testing.T) {
 }
 func TestRetireFailureDoesNotChangeExtendedVolume(t *testing.T) {
 	h := setup(t, true)
-	v := create(t, h, "pvc-a")
+	v := published(t, h)
 	h.api.extendErr = context.DeadlineExceeded
 	_, e := h.c.Expand(context.Background(), h.r.Handle(v.Status.ProviderID), 12<<30, 0)
 	mustBlocked(t, e)
+	if h.api.extendCalls != 1 {
+		t.Fatal("test did not reach uncertain native expansion")
+	}
 	_, e = h.c.Recover(context.Background(), protocol.RecoveryRequest{Action: "retire-unpublished", VolumeID: v.Name, Operator: "test", Nonce: uuid.NewString()})
 	mustBlocked(t, e)
 	v, _ = h.r.Volume(context.Background(), v.Name)

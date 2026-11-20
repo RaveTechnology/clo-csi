@@ -174,7 +174,7 @@ func TestFormatCrashCannotCreateSecondPermit(t *testing.T) {
 }
 func TestResizeNeverRebootsOrShrinks(t *testing.T) {
 	h := setup(t, true)
-	v := create(t, h, "pvc-a")
+	v := published(t, h)
 	handle := h.r.Handle(v.Status.ProviderID)
 	size, e := h.c.Expand(context.Background(), handle, 12<<30, 13<<30)
 	if e != nil || size != 12<<30 {

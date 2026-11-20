@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-rc.2",
+  "version": "0.1.0-rc.3",
   "productionReady": false,
-  "reason": "Full rc.2 live sanity: 50 passed, 2 failed, 50 skipped, 1 pending; fresh detached native CLO expansion remains ERROR"
+  "reason": "Attached-only growth guard; detached growth fails before CLO POST. Provider defect and unrestricted CSI conformance remain unresolved; live guarded-profile acceptance pending."
 }
