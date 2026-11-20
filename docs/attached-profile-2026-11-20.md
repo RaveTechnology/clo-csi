@@ -37,3 +37,20 @@ provider repair, lost-node recovery or application-data migration is claimed.
 Lost-node movement continues to require explicit old-VM fencing. Keep Retain,
 WaitForFirstConsumer and backups of the registry plus application data. Never
 manually detach or move a provider disk during driver operations.
+
+## Published runtime verification
+
+The immutable published rc.3 image was subsequently verified on the controller
+and both worker agents. The candidate overlays were removed. Binary SHA256
+matched the anonymously downloaded release binary on all three pods.
+
+Both existing PVCs then grew from12Gi to14Gi, one on each worker, without
+restarting their writers. All8MiB payloads were independently read and checked;
+inode, serial and filesystem UUID were preserved. Deleting each PVC under Retain
+left its released PV and detached native disk intact. Only these synthetic PVs
+were then explicitly switched to Delete and removed through CSI. Both native
+disks and the temporary namespace were confirmed absent.
+
+See [sanitized published-runtime evidence](published-profile-2026-11-20.json) for
+the immutable image and binary digests. The restricted profile passed these
+checks; general production readiness and full conformance remain unapproved.

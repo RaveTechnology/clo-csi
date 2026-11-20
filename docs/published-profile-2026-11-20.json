@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-20",
+  "version": "0.1.0-rc.3",
+  "sourceCommit": "0860cd30902a501164e9ac00ffde5560eec8389f",
+  "image": "ghcr.io/ravetechnology/clo-csi@sha256:07850c5892875fc5688646fcc84320ac889aea0400991fbdd442fb65f2fd73ce",
+  "binarySHA256": "a647a38d23170d73991ebf12f48593d7e1cbc6b2cf4acc8d3094dccddb1c18e6",
+  "anonymousReleaseAssetsAndGHCRManifestVerified": true,
+  "exactRuntime": {
+    "controllerPods": 1,
+    "nodePods": 2,
+    "candidateOverlay": false
+  },
+  "profile": {
+    "accessMode": "ReadWriteOnce",
+    "filesystem": "ext4",
+    "reclaimPolicy": "Retain",
+    "binding": "WaitForFirstConsumer",
+    "expansion": "attached-only",
+    "lostNodePolicy": "explicit old-VM fencing"
+  },
+  "publishedRuntimeChecks": {
+    "attachedExpansion12To14GiB": {
+      "volumes": 2,
+      "distinctWorkers": 2,
+      "writerPodRestarts": 0,
+      "independentlyVerifiedPayloadBytesPerVolume": 8388608,
+      "payloadInodeSerialAndFSUUIDPreserved": true
+    },
+    "retainAfterPVCDeletion": true,
+    "syntheticVolumeRemovalThroughCSI": true,
+    "temporaryAcceptanceNamespaceRemoved": true
+  },
+  "unrestrictedCSIConformanceAccepted": false,
+  "providerDetachedExpansionFixed": false,
+  "productionReady": false,
+  "limits": [
+    "No new successful full native conformance run",
+    "Previously documented rc.2 detached expansion failures remain",
+    "No application data migration or application backup acceptance",
+    "Lost-node volume movement still requires explicit old-VM fencing"
+  ]
+}

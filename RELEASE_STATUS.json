@@ -1,5 +1,5 @@
 {
   "version": "0.1.0-rc.3",
   "productionReady": false,
-  "reason": "Attached-only profile passed candidate live online growth and detached rejection followed by cross-node attachment/growth. Native detached expansion defect and unrestricted CSI conformance remain unresolved; productionReady remains false."
+  "reason": "Attached-only RWO/ext4 profile passed exact published-image growth on both workers, identity/data checks and Retain cleanup. Native detached expansion defect and unrestricted CSI conformance remain unresolved."
 }
