@@ -5,7 +5,9 @@ left only one of its two claims acquired. Closing uses the operation's CAS befor
 releasing only claims still naming that operation. Dispatch still requires both
 claims; sent operations continue to require observed postconditions or explicit
 VM fencing. Aborting preparation uses a separate bounded cancellation context,
-so an expired caller cannot strand a claim during cleanup. No registry reset or
+so an expired caller cannot strand a claim during cleanup. Recovery rejects live
+preparers through dispatch metadata writes; cancelled cleanup retains issuer and
+restore-fence checks while allowing ordinary maintenance drain. No registry reset or
 native mutation replay is introduced. The chart gives controller and node agents
 the Kubernetes system priorities needed to schedule before their PVC consumers.
 Live bootstrap acceptance of this release is pending.

@@ -105,7 +105,8 @@ func (c *Coordinator) Publish(ctx context.Context, handle, nodeID string, readon
 	if len(ids)-len(n.Status.BootVolumeIDs) >= c.cfg.MaxVolumesPerNode {
 		return out, protocol.Fail(protocol.Blocked, "node volume limit reached")
 	}
-	op, e := c.newOperation(ctx, "attach", v, &n, baseline.Snapshot, ids, 0)
+	op, finishPreparation, e := c.newOperation(ctx, "attach", v, &n, baseline.Snapshot, ids, 0)
+	defer finishPreparation()
 	if e != nil {
 		return out, e
 	}

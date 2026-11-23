@@ -63,7 +63,8 @@ func (c *Coordinator) Expand(ctx context.Context, handle string, required, limit
 	if e != nil {
 		return 0, e
 	}
-	op, e := c.newOperation(ctx, "extend", v, &n, protocol.Snapshot{}, nil, gb, limit)
+	op, finishPreparation, e := c.newOperation(ctx, "extend", v, &n, protocol.Snapshot{}, nil, gb, limit)
+	defer finishPreparation()
 	if e != nil {
 		if code(e, protocol.Conflict) {
 			// A completed competing grow can invalidate our pre-claim facts.

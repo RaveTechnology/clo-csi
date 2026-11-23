@@ -111,7 +111,8 @@ func (c *Coordinator) Unpublish(ctx context.Context, handle, nodeID string) erro
 		}
 		before = r.Snapshot
 	}
-	op, e := c.newOperation(ctx, "detach", v, &n, before, ids, 0)
+	op, finishPreparation, e := c.newOperation(ctx, "detach", v, &n, before, ids, 0)
+	defer finishPreparation()
 	if e != nil {
 		return e
 	}

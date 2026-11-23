@@ -230,6 +230,9 @@ func (c *Coordinator) reconciliation(ctx context.Context, op registry.OperationR
 		return nil, e
 	}
 	if !op.Status.Sent && op.Status.Phase == registry.Prepared {
+		if c.preparing(op.Name) {
+			return nil, protocol.Fail(protocol.Conflict, "operation preparation still active")
+		}
 		return func() error { return c.completeUnsentOperation(ctx, op) }, nil
 	}
 	switch op.Spec.Type {
@@ -364,6 +367,9 @@ func (c *Coordinator) reconciliation(ctx context.Context, op registry.OperationR
 // cancellation race on the same CAS; once Completed, no old sender can acquire a
 // grant. Keeping the result durable lets a restart finish reset/release safely.
 func (c *Coordinator) completeUnsentOperation(ctx context.Context, op registry.OperationRecord) error {
+	if c.preparing(op.Name) {
+		return protocol.Fail(protocol.Conflict, "operation preparation still active")
+	}
 	// Preparation acquires node and volume claims separately. Cancellation can
 	// leave either claim missing. Closing this exact unsent version through CAS
 	// prevents any later dispatch; Release removes only claims still naming it.
