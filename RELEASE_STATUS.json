@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-rc.5",
+  "version": "0.1.0-rc.6",
   "productionReady": false,
-  "reason": "rc.5 recovers exact never-dispatched partial preparation claims and makes storage components schedulable ahead of PVC consumers. Live bootstrap acceptance is pending. The attached-only RWO/ext4 restrictions remain; native detached expansion and unrestricted CSI conformance are unresolved."
+  "reason": "rc.6 bounds concurrent fresh node cloud proofs and adds explicit fenced retirement of interrupted initial formatting while retaining the original disk and initialization history. Live acceptance is pending. Attached-only RWO/ext4 restrictions remain; native detached expansion and unrestricted CSI conformance are unresolved."
 }

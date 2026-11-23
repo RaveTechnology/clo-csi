@@ -38,6 +38,7 @@ type Coordinator struct {
 	drained      chan struct{}
 	preparingMu  sync.Mutex
 	preparations map[string]struct{}
+	proofMu      sync.Mutex
 }
 
 func New(repo *registry.Repository, api cloud.StorageAPI, nodes protocol.Channel, cfg Config) *Coordinator {
