@@ -21,6 +21,7 @@ spec:
       labels: {app.kubernetes.io/name: clo-csi, app.kubernetes.io/component: controller}
     spec:
       serviceAccountName: clo-csi-controller
+      priorityClassName: {{ .Values.controller.priorityClassName | quote }}
       enableServiceLinks: false
       terminationGracePeriodSeconds: 150
       nodeSelector:

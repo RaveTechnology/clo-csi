@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-rc.4",
+  "version": "0.1.0-rc.5",
   "productionReady": false,
-  "reason": "rc.4 extends the node HTTPS deadline for fresh proofs sharing the paced CLO API; live scale acceptance is pending. The rc.3 attached-only RWO/ext4 profile passed exact-image growth, identity/data checks and Retain cleanup. Native detached expansion and unrestricted CSI conformance remain unresolved."
+  "reason": "rc.5 recovers exact never-dispatched partial preparation claims and makes storage components schedulable ahead of PVC consumers. Live bootstrap acceptance is pending. The attached-only RWO/ext4 restrictions remain; native detached expansion and unrestricted CSI conformance are unresolved."
 }

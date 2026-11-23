@@ -199,8 +199,10 @@ func (c *Coordinator) newOperation(ctx context.Context, typ string, v registry.V
 	return op, nil
 }
 func (c *Coordinator) abortPrepared(ctx context.Context, op registry.OperationRecord) {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+	defer cancel()
 	fresh, e := c.repo.Operation(ctx, op.Name)
-	if e != nil || fresh.Status.Sent || fresh.UID != op.UID {
+	if e != nil || fresh.Status.Sent || fresh.Status.Phase != registry.Prepared || fresh.UID != op.UID {
 		return
 	}
 	fresh.Status.Phase = registry.Completed

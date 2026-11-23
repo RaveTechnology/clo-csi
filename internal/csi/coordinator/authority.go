@@ -8,22 +8,30 @@ import (
 
 // Already-admitted work may finalize while freeze drains it, but a recreated
 // operation or replaced issuer can never change freshly restored metadata.
-func (c *Coordinator) operationAuthority(ctx context.Context, op registry.OperationRecord) error {
+func (c *Coordinator) operationIdentity(ctx context.Context, op registry.OperationRecord) (registry.OperationRecord, error) {
 	latest, e := c.repo.Operation(ctx, op.Name)
 	if e != nil {
-		return e
+		return latest, e
 	}
 	if latest.UID != op.UID || latest.Spec.Nonce != op.Spec.Nonce || latest.Spec.Issuer != op.Spec.Issuer {
-		return protocol.Fail(protocol.Conflict, "stale operation object/incarnation")
+		return latest, protocol.Fail(protocol.Conflict, "stale operation object/incarnation")
 	}
 	issuer, e := c.repo.Issuer(ctx)
 	if e != nil {
-		return e
+		return latest, e
 	}
 	if issuer.Status.Current != c.current() || issuer.Status.RestoreNeedsFence {
-		return protocol.Fail(protocol.Blocked, "operation completion issuer inactive")
+		return latest, protocol.Fail(protocol.Blocked, "operation completion issuer inactive")
 	}
 	if e = c.priorIssuerGone(ctx, op); e != nil {
+		return latest, e
+	}
+	return latest, nil
+}
+
+func (c *Coordinator) operationAuthority(ctx context.Context, op registry.OperationRecord) error {
+	latest, e := c.operationIdentity(ctx, op)
+	if e != nil {
 		return e
 	}
 	if latest.Status.Phase != registry.Completed {

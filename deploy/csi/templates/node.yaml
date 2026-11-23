@@ -10,6 +10,7 @@ spec:
       labels: {app.kubernetes.io/name: clo-csi, app.kubernetes.io/component: node}
     spec:
       serviceAccountName: clo-csi-node
+      priorityClassName: {{ .Values.node.priorityClassName | quote }}
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostPID: true
