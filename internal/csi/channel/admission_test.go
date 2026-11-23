@@ -81,3 +81,41 @@ func TestCloudProofAdmissionLeavesRecoveryChannelUsable(t *testing.T) {
 		t.Fatal(e)
 	}
 }
+
+func TestIndependentNodesHaveBudgetForSharedAPIProofs(t *testing.T) {
+	// Every node has its own client/admission queue, but all proofs use the
+	// controller's one-request-per-second CLO API transport. Scale wall time
+	// by 100 while keeping the production client deadline and API pace ratio.
+	api := rate.NewLimiter(rate.Every(10*time.Millisecond), 1)
+	s := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for range 7 {
+			if e := api.Wait(r.Context()); e != nil {
+				return
+			}
+		}
+		_ = json.NewEncoder(w).Encode(protocol.StagePermit{})
+	}))
+	defer s.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+	start := make(chan struct{})
+	errors := make(chan error, 8)
+	for range 8 {
+		c, e := NewClient(s.URL, certificatePEM(s.Certificate()), tokenFile(t))
+		if e != nil {
+			t.Fatal(e)
+		}
+		c.http.Timeout /= 100
+		go func() {
+			<-start
+			_, e := c.AuthorizeStage(ctx, protocol.StageRequest{})
+			errors <- e
+		}()
+	}
+	close(start)
+	for range 8 {
+		if e := <-errors; e != nil {
+			t.Error("fresh proof expired while independent nodes shared the API pace:", e)
+		}
+	}
+}

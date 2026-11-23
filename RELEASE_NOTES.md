@@ -1,5 +1,14 @@
 EXPERIMENTAL / NOT PRODUCTION READY.
 
+rc.4 gives node HTTPS requests a three-minute budget for fresh cloud proofs.
+Independent nodes share the controller's one-request-per-second CLO API queue;
+the previous45-second limit could expire valid stage/report requests during a
+parallel bootstrap. A regression test exercises eight independent node clients
+against that shared API pace. Caller cancellation still bounds shorter requests.
+Fresh cloud verification, credentials and operation authority remain required.
+The wire protocol is compatible with rc.3, allowing node agents to roll first
+while the existing controller retains its issuer and pending operation records.
+
 rc.3 rejects actual growth unless CLO reports IN_USE on the volume's registered,
 active node. Detached growth returns FailedPrecondition before creating an
 operation or sending a native POST. Attach the PVC to a running pod before
