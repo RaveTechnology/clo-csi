@@ -1,5 +1,19 @@
 EXPERIMENTAL / NOT PRODUCTION READY.
 
+rc.6 limits fresh node registration, stage authorization and filesystem receipt
+proofs to one nonblocking admission slot. Busy callers receive retryable Conflict
+before cloud work or a new intent; recovery binding, polling and job receipts
+remain independently available. The shared cloud request pace is unchanged.
+
+The explicit retire-incomplete-format admin action accepts only the exact saved
+format operation, full CSI volume handle and a matching verified old-VM fence.
+It permanently retires an interrupted FormatDispatched initialization, retaining
+the original disk, format history and Sent flag while closing only its claims.
+It performs no cloud or filesystem writes. Fenced cold detach is a separate step;
+the retired disk remains protected from CSI Delete and cannot be republished.
+Dry runs and interrupted retirement are covered. Exact-image live acceptance and
+mass bootstrap remain pending, and the general production gate stays closed.
+
 rc.5 closes an exact never-dispatched Prepared operation even when interruption
 left only one of its two claims acquired. Closing uses the operation's CAS before
 releasing only claims still naming that operation. Dispatch still requires both
