@@ -2,6 +2,6 @@ apiVersion: v2
 name: clo-csi
 description: Guarded native CLO volumes for new RWO/ext4 PVCs
 type: application
-version: 0.1.0-rc.3
-appVersion: 0.1.0-rc.3
+version: 0.1.0-rc.4
+appVersion: 0.1.0-rc.4
 kubeVersion: '>=1.36.0-0 <1.37.0-0'

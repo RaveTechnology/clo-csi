@@ -34,7 +34,11 @@ func NewClient(baseURL string, caBundle []byte, tokenFile string) (*Client, erro
 	}
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.TLSClientConfig = &tls.Config{RootCAs: roots, MinVersion: tls.VersionTLS13}
-	client := &http.Client{Transport: transport, Timeout: 45 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return errors.New("controller redirect refused") }}
+	// Independent node clients share the controller's paced CLO API. Allow a
+	// complete fresh proof to survive that shared queue; the caller's context
+	// still bounds shorter CSI requests and cancellation. Never cache the proof
+	// or replay a native mutation to compensate for queueing.
+	client := &http.Client{Transport: transport, Timeout: 3 * time.Minute, CheckRedirect: func(*http.Request, []*http.Request) error { return errors.New("controller redirect refused") }}
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), tokenFile: tokenFile, http: client, cloudProof: make(chan struct{}, 1)}, nil
 }
 func (c *Client) request(ctx context.Context, path string, in, out any) error {
