@@ -29,7 +29,8 @@ func preparedFormat(t *testing.T, h *harness) (registry.VolumeRecord, registry.O
 	if e != nil {
 		t.Fatal(e)
 	}
-	op, e := h.c.newOperation(ctx, "format", v, &n, h.channel.snapshot(), nil, 0)
+	op, finishPreparation, e := h.c.newOperation(ctx, "format", v, &n, h.channel.snapshot(), nil, 0)
+	defer finishPreparation()
 	if e != nil {
 		t.Fatal(e)
 	}

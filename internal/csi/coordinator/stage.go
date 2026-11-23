@@ -78,7 +78,8 @@ func (c *Coordinator) AuthorizeStage(ctx context.Context, q protocol.StageReques
 	if d.FSType != "" || d.FSUUID != "" || len(d.Mounts) > 0 {
 		return out, protocol.Fail(protocol.Blocked, "foreign signature or mount prevents initial format")
 	}
-	op, e := c.newOperation(ctx, "format", v, &n, q.Snapshot, nil, 0)
+	op, finishPreparation, e := c.newOperation(ctx, "format", v, &n, q.Snapshot, nil, 0)
+	defer finishPreparation()
 	if e != nil {
 		return out, e
 	}

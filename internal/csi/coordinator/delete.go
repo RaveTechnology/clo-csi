@@ -93,7 +93,8 @@ func (c *Coordinator) Delete(ctx context.Context, handle string) error {
 	if a.AttachedServerID != "" || a.Bootable || a.Status != "AVAILABLE" {
 		return protocol.Fail(protocol.Blocked, "only available unbootable unattached volumes can be deleted")
 	}
-	op, e := c.newOperation(ctx, "delete", v, nil, protocol.Snapshot{}, nil, 0)
+	op, finishPreparation, e := c.newOperation(ctx, "delete", v, nil, protocol.Snapshot{}, nil, 0)
+	defer finishPreparation()
 	if e != nil {
 		return e
 	}

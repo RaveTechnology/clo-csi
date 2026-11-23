@@ -1,7 +1,7 @@
 # Inputs and linux/amd64 manifest digests: deploy/csi/images.lock.yaml.
 FROM docker.io/library/golang:1.27.1-bookworm@sha256:e114385c58e7280d2f56d6cf374219dda33fef8eb77f72e9f290ccae6160bd90 AS builder
 WORKDIR /src
-ARG VERSION=0.1.0-rc.4
+ARG VERSION=0.1.0-rc.5
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .

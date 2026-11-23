@@ -106,7 +106,8 @@ func (c *Coordinator) EnsureVolume(ctx context.Context, q protocol.VolumeRequest
 			return v, e
 		}
 	}
-	op, e := c.newOperation(ctx, "create", v, nil, protocol.Snapshot{}, nil, gb, q.LimitBytes)
+	op, finishPreparation, e := c.newOperation(ctx, "create", v, nil, protocol.Snapshot{}, nil, gb, q.LimitBytes)
+	defer finishPreparation()
 	if e != nil {
 		return v, e
 	}

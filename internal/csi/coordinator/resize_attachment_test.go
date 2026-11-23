@@ -132,7 +132,8 @@ func TestAttachedGrowthLocksNodeAgainstConcurrentDetach(t *testing.T) {
 	h := setup(t, true)
 	v := published(t, h)
 	ctx := context.Background()
-	op, err := h.c.newOperation(ctx, "detach", v, nil, protocol.Snapshot{}, nil, 0)
+	op, finishPreparation, err := h.c.newOperation(ctx, "detach", v, nil, protocol.Snapshot{}, nil, 0)
+	defer finishPreparation()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -257,7 +258,8 @@ func TestLegacyUnboundGrowthRecoveryRemainsReadOnly(t *testing.T) {
 	h := setup(t, true)
 	v := create(t, h, "legacy-grow")
 	ctx := context.Background()
-	op, e := h.c.newOperation(ctx, "extend", v, nil, protocol.Snapshot{}, nil, 12, 0)
+	op, finishPreparation, e := h.c.newOperation(ctx, "extend", v, nil, protocol.Snapshot{}, nil, 12, 0)
+	defer finishPreparation()
 	if e != nil {
 		t.Fatal(e)
 	}

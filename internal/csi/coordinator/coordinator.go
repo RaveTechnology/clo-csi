@@ -36,6 +36,8 @@ type Coordinator struct {
 	active       int
 	stopping     bool
 	drained      chan struct{}
+	preparingMu  sync.Mutex
+	preparations map[string]struct{}
 }
 
 func New(repo *registry.Repository, api cloud.StorageAPI, nodes protocol.Channel, cfg Config) *Coordinator {
@@ -165,9 +167,30 @@ func sameIDs(a, b []string) bool { return reflect.DeepEqual(sorted(a), sorted(b)
 func volumeRef(r *registry.Repository, v registry.VolumeRecord) protocol.VolumeRef {
 	return protocol.VolumeRef{RecordID: v.Name, Handle: r.Handle(v.Status.ProviderID), ProviderID: v.Status.ProviderID, Serial: v.Status.Serial, FSUUID: v.Status.FSUUID, AttachEpoch: v.Status.AttachEpoch}
 }
-func (c *Coordinator) newOperation(ctx context.Context, typ string, v registry.VolumeRecord, n *registry.NodeRecord, before protocol.Snapshot, apiIDs []string, targetGB int, limits ...int64) (registry.OperationRecord, error) {
+func (c *Coordinator) trackPreparation(name string) func() {
+	c.preparingMu.Lock()
+	if c.preparations == nil {
+		c.preparations = make(map[string]struct{})
+	}
+	c.preparations[name] = struct{}{}
+	c.preparingMu.Unlock()
+	return func() {
+		c.preparingMu.Lock()
+		delete(c.preparations, name)
+		c.preparingMu.Unlock()
+	}
+}
+
+func (c *Coordinator) preparing(name string) bool {
+	c.preparingMu.Lock()
+	defer c.preparingMu.Unlock()
+	_, ok := c.preparations[name]
+	return ok
+}
+
+func (c *Coordinator) newOperation(ctx context.Context, typ string, v registry.VolumeRecord, n *registry.NodeRecord, before protocol.Snapshot, apiIDs []string, targetGB int, limits ...int64) (registry.OperationRecord, func(), error) {
 	if e := c.checkIssuer(ctx); e != nil {
-		return registry.OperationRecord{}, e
+		return registry.OperationRecord{}, func() {}, e
 	}
 	s := registry.OperationSpec{Type: typ, Nonce: uuid.NewString(), VolumeRecordID: v.Name, Issuer: c.current(), Before: before, APIVolumeIDs: sorted(apiIDs), TargetSizeGB: targetGB}
 	if len(limits) > 0 {
@@ -182,25 +205,37 @@ func (c *Coordinator) newOperation(ctx context.Context, typ string, v registry.V
 	if deadline, ok := ctx.Deadline(); ok {
 		s.Deadline = deadline
 	}
+	// Register before durable creation: recovery must not overtake acquisition
+	// of either claim or the caller's following dispatch metadata writes.
+	finish := c.trackPreparation(registry.Name("o", s.Nonce))
+	prepared := false
+	defer func() {
+		if !prepared {
+			finish()
+		}
+	}()
 	op, e := c.repo.CreateOperation(ctx, s)
 	if e != nil {
-		return op, e
+		return op, finish, e
 	}
 	if n != nil {
 		if e = c.repo.LockNode(ctx, n.Name, op.Name, n.Version); e != nil {
 			c.abortPrepared(ctx, op)
-			return op, e
+			return op, finish, e
 		}
 	}
 	if e = c.repo.LockVolume(ctx, v.Name, op.Name, v.Version); e != nil {
 		c.abortPrepared(ctx, op)
-		return op, e
+		return op, finish, e
 	}
-	return op, nil
+	prepared = true
+	return op, finish, nil
 }
 func (c *Coordinator) abortPrepared(ctx context.Context, op registry.OperationRecord) {
-	fresh, e := c.repo.Operation(ctx, op.Name)
-	if e != nil || fresh.Status.Sent || fresh.UID != op.UID {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+	defer cancel()
+	fresh, e := c.operationIdentity(ctx, op)
+	if e != nil || fresh.Status.Sent || fresh.Status.Phase != registry.Prepared || fresh.UID != op.UID {
 		return
 	}
 	fresh.Status.Phase = registry.Completed
