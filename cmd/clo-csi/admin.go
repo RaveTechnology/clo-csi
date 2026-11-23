@@ -126,7 +126,7 @@ func (s *AdminService) Do(ctx context.Context, q AdminRequest) (AdminResponse, e
 		out.Data = data
 		out.Message = q.Action + " completed"
 		return out, nil
-	case "reconcile", "record-fence", "recover-attachment", "clear-quarantine", "retire-unpublished":
+	case "reconcile", "record-fence", "recover-attachment", "clear-quarantine", "retire-unpublished", "retire-incomplete-format":
 		if q.Recovery.Action != q.Action {
 			return out, errors.New("recovery action differs")
 		}

@@ -81,6 +81,11 @@ func rootSerial(s protocol.Snapshot) (string, error) {
 	return root, nil
 }
 func (c *Coordinator) RegisterNode(ctx context.Context, caller protocol.Caller, hello protocol.NodeHello) (protocol.NodeRef, error) {
+	proofDone, e := c.admitProof(ctx)
+	if e != nil {
+		return protocol.NodeRef{}, e
+	}
+	defer proofDone()
 	done, e := c.begin(ctx)
 	if e != nil {
 		f, check := c.repo.Frozen(ctx)

@@ -193,6 +193,8 @@ func (c *Coordinator) Recover(ctx context.Context, q protocol.RecoveryRequest) (
 		return out, nil
 	case "recover-attachment":
 		return c.recoverAttachment(ctx, q)
+	case "retire-incomplete-format":
+		return c.retireIncompleteFormat(ctx, q)
 	default:
 		return out, protocol.Fail(protocol.Invalid, "unsupported recovery action")
 	}

@@ -30,7 +30,7 @@ func argsFor(action string) []string {
 	return []string{"admin", action, "--context=clo-lab", "--project-id=" + testProject, "--installation-id=" + testInstall, "--namespace=clo-system", "--operator=owner", "--nonce=" + testNonce, "--operation=o-test", "--binding=n-test", "--volume=v-test", "--fence=f-test"}
 }
 func TestCLIRequiresExplicitScopeForWrites(t *testing.T) {
-	for _, action := range []string{"reconcile", "record-fence", "recover-attachment", "clear-quarantine", "retire-unpublished", "restore", "freeze", "resume"} {
+	for _, action := range []string{"reconcile", "record-fence", "recover-attachment", "clear-quarantine", "retire-unpublished", "retire-incomplete-format", "restore", "freeze", "resume"} {
 		for _, missing := range []string{"context", "project-id", "installation-id"} {
 			t.Run(action+"-"+missing, func(t *testing.T) {
 				spy := &adminSpy{}
@@ -52,7 +52,7 @@ func TestCLIRequiresExplicitScopeForWrites(t *testing.T) {
 	}
 }
 func TestAdminDryRunHasNoMutation(t *testing.T) {
-	for _, action := range []string{"reconcile", "record-fence", "recover-attachment", "clear-quarantine", "retire-unpublished"} {
+	for _, action := range []string{"reconcile", "record-fence", "recover-attachment", "clear-quarantine", "retire-unpublished", "retire-incomplete-format"} {
 		spy := &adminSpy{}
 		args := append(argsFor(action), "--dry-run")
 		if e := run(context.Background(), args, strings.NewReader(""), io.Discard, Dependencies{Admin: spy}); e != nil {

@@ -43,6 +43,11 @@ func (c *Coordinator) stageFacts(ctx context.Context, q protocol.StageRequest) (
 	return v, n, disk, nil
 }
 func (c *Coordinator) AuthorizeStage(ctx context.Context, q protocol.StageRequest) (protocol.StagePermit, error) {
+	proofDone, proofErr := c.admitProof(ctx)
+	if proofErr != nil {
+		return protocol.StagePermit{}, proofErr
+	}
+	defer proofDone()
 	done, admitErr := c.begin(ctx)
 	if admitErr != nil {
 		return protocol.StagePermit{}, admitErr
@@ -103,6 +108,11 @@ func (c *Coordinator) AuthorizeStage(ctx context.Context, q protocol.StageReques
 	return out, nil
 }
 func (c *Coordinator) Receive(ctx context.Context, node protocol.NodeRef, r protocol.Receipt) error {
+	proofDone, proofErr := c.admitProof(ctx)
+	if proofErr != nil {
+		return proofErr
+	}
+	defer proofDone()
 	done, admitErr := c.begin(ctx)
 	if admitErr != nil {
 		return admitErr
