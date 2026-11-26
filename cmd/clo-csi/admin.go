@@ -126,7 +126,7 @@ func (s *AdminService) Do(ctx context.Context, q AdminRequest) (AdminResponse, e
 		out.Data = data
 		out.Message = q.Action + " completed"
 		return out, nil
-	case "reconcile", "record-fence", "recover-attachment", "clear-quarantine", "retire-unpublished", "retire-incomplete-format":
+	case "reconcile", "record-fence", "recover-attachment", "clear-quarantine", "retire-unpublished", "retire-incomplete-format", "retire-quiesced-format":
 		if q.Recovery.Action != q.Action {
 			return out, errors.New("recovery action differs")
 		}
@@ -136,6 +136,9 @@ func (s *AdminService) Do(ctx context.Context, q AdminRequest) (AdminResponse, e
 		}
 		out.Record = record(registry.KindOperation, v.Meta, v.Spec, v.Status)
 		out.Message = v.Status.Result
+		if q.Recovery.DryRun && q.Action == "retire-quiesced-format" {
+			out.Message = "read-only eligibility checked; durable local barrier and kernel quiescence not established"
+		}
 		if !q.Recovery.DryRun {
 			switch q.Action {
 			case "record-fence":

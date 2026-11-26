@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-rc.6",
+  "version": "0.1.0-rc.7",
   "productionReady": false,
-  "reason": "rc.6 bounds concurrent fresh node cloud proofs and adds explicit fenced retirement of interrupted initial formatting while retaining the original disk and initialization history. Live acceptance is pending. Attached-only RWO/ext4 restrictions remain; native detached expansion and unrestricted CSI conformance are unresolved."
+  "reason": "rc.7 adds explicit live-quiesced retirement of unused interrupted formatting, requiring upgraded-agent raw signature proofs, original boot identity and a sealed exact job/intent receipt. Exact-image acceptance remains pending. Retained disks cannot be reused or deleted through CSI. Attached-only RWO/ext4 restrictions, native detached expansion and unrestricted CSI conformance remain unresolved."
 }

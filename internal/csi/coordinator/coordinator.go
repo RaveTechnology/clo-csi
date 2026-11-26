@@ -143,9 +143,13 @@ func (c *Coordinator) ownedVolume(ctx context.Context, v registry.VolumeRecord) 
 func (c *Coordinator) exchange(ctx context.Context, typ string, n protocol.NodeRef, v protocol.VolumeRef, issuer protocol.IssuerDescriptor, pod, nonce string) (protocol.Receipt, error) {
 	job := protocol.Job{ID: uuid.NewString(), Nonce: uuid.NewString(), Type: typ, Node: n, Volume: v, Issuer: issuer, PodUID: pod, ProcessNonce: nonce}
 	job.InstallationID = c.repo.Installation().ID
+	return c.exchangePrepared(ctx, job)
+}
+
+func (c *Coordinator) exchangePrepared(ctx context.Context, job protocol.Job) (protocol.Receipt, error) {
 	r, e := c.nodes.Exchange(ctx, job)
 	if e != nil {
-		return r, protocol.Fail(protocol.Unavailable, "bound node job unavailable: %s", typ)
+		return r, protocol.Fail(protocol.Unavailable, "bound node job unavailable: %s", job.Type)
 	}
 	if r.JobID != job.ID || r.Nonce != job.Nonce || r.Type != job.Type || r.Node != job.Node || r.Volume != job.Volume || r.Error != "" {
 		return r, protocol.Fail(protocol.Blocked, "node receipt identity differs")

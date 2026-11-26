@@ -51,7 +51,7 @@ type Dependencies struct {
 	Node         func(Config) error
 }
 
-const usage = "clo-csi controller|node|admin ACTION|schema\nAdmin: inspect reconcile record-fence recover-attachment clear-quarantine retire-unpublished retire-incomplete-format freeze resume export restore tls-bootstrap\nRequired scope: --context --project-id --installation-id; --namespace defaults to clo-system.\nCloud credentials: controller mounted file only. Recovery IDs are logical record names from inspect; retire-incomplete-format requires the full CSI handle in --volume.\n"
+const usage = "clo-csi controller|node|admin ACTION|schema\nAdmin: inspect reconcile record-fence recover-attachment clear-quarantine retire-unpublished retire-incomplete-format retire-quiesced-format freeze resume export restore tls-bootstrap\nRequired scope: --context --project-id --installation-id; --namespace defaults to clo-system.\nCloud credentials: controller mounted file only. Recovery IDs are logical record names from inspect; both format retirement actions require the full CSI handle in --volume.\n"
 
 func parse(mode string, args []string) (Config, error) {
 	c := Config{Scope: Scope{Namespace: "clo-system"}}
@@ -159,7 +159,7 @@ func run(ctx context.Context, args []string, in io.Reader, out io.Writer, deps D
 		if c.Action == "tls-bootstrap" {
 			return writeTLSBootstrap(c, out)
 		}
-		allowed := map[string]bool{"inspect": true, "reconcile": true, "record-fence": true, "recover-attachment": true, "clear-quarantine": true, "retire-unpublished": true, "retire-incomplete-format": true, "freeze": true, "resume": true, "export": true, "restore": true}
+		allowed := map[string]bool{"inspect": true, "reconcile": true, "record-fence": true, "recover-attachment": true, "clear-quarantine": true, "retire-unpublished": true, "retire-incomplete-format": true, "retire-quiesced-format": true, "freeze": true, "resume": true, "export": true, "restore": true}
 		if !allowed[c.Action] {
 			return errors.New("unknown admin action")
 		}

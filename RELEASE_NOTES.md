@@ -1,5 +1,16 @@
 EXPERIMENTAL / NOT PRODUCTION READY.
 
+rc.7 adds explicit retire-quiesced-format for an unused interrupted first format
+on a reachable live node. New probeBlank/quiesceBlank jobs require a raw signature
+probe and refuse local FormatComplete; ordinary hot detach is unchanged. Both
+fresh proofs must match the original operation boot. The original authenticated
+job response is retained verbatim and sealed with its saved intent in the volume
+tombstone. Old agents cannot produce this proof and safely refuse the action.
+Upgrade the selected recovery node agent as well as the controller; other normal
+node operations remain compatible. Keep the original disk and every format intent;
+no VM stop, second mkfs or deletion is authorized. Exact-image acceptance remains
+pending until separately recorded; the general production gate stays closed.
+
 rc.6 limits fresh node registration, stage authorization and filesystem receipt
 proofs to one nonblocking admission slot. Busy callers receive retryable Conflict
 before cloud work or a new intent; recovery binding, polling and job receipts

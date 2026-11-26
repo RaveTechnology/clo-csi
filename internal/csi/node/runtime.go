@@ -65,7 +65,7 @@ func (r *Runtime) Execute(ctx context.Context, job protocol.Job) (protocol.Recei
 				return protocol.Fail(protocol.Unavailable, "host verifier unavailable")
 			}
 			receipt.Proof, e = r.Verifier.Verify(ctx, job.Issuer)
-		case "quiesce":
+		case "quiesce", "probeBlank", "quiesceBlank":
 			e = r.Journal.WithLock(ctx, job.Volume.Handle, func() error {
 				local, e := r.Journal.Load(job.Volume.Handle)
 				if missing(e) {
@@ -76,10 +76,15 @@ func (r *Runtime) Execute(ctx context.Context, job protocol.Job) (protocol.Recei
 				if local.Volume != job.Volume || local.Node != job.Node {
 					return protocol.Fail(protocol.Blocked, "quiesce generation differs")
 				}
-				local.Barrier = true
-				local.DetachCommitted = true
-				if e = r.Journal.Save(local); e != nil {
-					return e
+				if job.Type != "probeBlank" {
+					local.Barrier = true
+					local.DetachCommitted = true
+					if e = r.Journal.Save(local); e != nil {
+						return e
+					}
+				}
+				if job.Type != "quiesce" && local.Initialization == "FormatComplete" {
+					return protocol.Fail(protocol.Blocked, "completed local format cannot prove blank")
 				}
 				if local.StagePath != "" || len(local.Targets) > 0 || len(local.PendingTargets) > 0 {
 					return protocol.Fail(protocol.Blocked, "local stage/pod references remain")
@@ -101,8 +106,21 @@ func (r *Runtime) Execute(ctx context.Context, job protocol.Job) (protocol.Recei
 				if e = r.Filesystem.VerifyUnmounted(ctx, d); e != nil {
 					return e
 				}
+				if job.Type != "quiesce" {
+					if d.FSType != "" || d.FSUUID != "" {
+						return protocol.Fail(protocol.Blocked, "blank device inventory required")
+					}
+					signatures, err := r.Filesystem.Probe(ctx, d)
+					if err != nil {
+						return err
+					}
+					if len(signatures) != 0 {
+						return protocol.Fail(protocol.Blocked, "raw device contains a recognized signature")
+					}
+					receipt.BlankChecked = true
+				}
 				receipt.Snapshot = snap
-				receipt.Quiesced = true
+				receipt.Quiesced = job.Type != "probeBlank"
 				return nil
 			})
 		case "listIssuers":

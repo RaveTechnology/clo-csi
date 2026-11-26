@@ -97,6 +97,7 @@ type Job struct {
 	ProcessNonce   string           `json:"processNonce"`
 }
 type Receipt struct {
+	BlankChecked      bool               `json:"blankChecked,omitempty"`
 	Issuers           []IssuerDescriptor `json:"issuers,omitempty"`
 	JobID             string             `json:"jobID"`
 	Nonce             string             `json:"nonce"`
