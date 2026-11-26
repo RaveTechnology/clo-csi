@@ -147,6 +147,9 @@ func (r *Repository) SaveVolume(ctx context.Context, v VolumeRecord, version str
 	if old.Status.Initialization == "FormatComplete" && v.Status.Initialization != "FormatComplete" {
 		return VolumeRecord{}, protocol.Fail(protocol.Invalid, "completed filesystem initialization is immutable")
 	}
+	if old.Status.Retired && (!v.Status.Retired || old.Status.Barrier && !v.Status.Barrier) {
+		return VolumeRecord{}, protocol.Fail(protocol.Invalid, "retirement and its existing barrier are permanent")
+	}
 	if old.Status.FormatOp != "" && (v.Status.FormatOp != old.Status.FormatOp || old.Status.Initialization == "FormatDispatched" && v.Status.Initialization == "") {
 		op, e := r.Operation(ctx, old.Status.FormatOp)
 		if e != nil {
