@@ -33,3 +33,43 @@ attachments/issuers/UIDs, dry runs, interruption and repeated retirement, retain
 native data, cold detach, concurrent proof admission and an independent recovery
 channel. Live acceptance uses the exact published image. General production
 readiness and unrestricted CSI conformance remain separate gates.
+
+## Healthy live node
+
+For a healthy reachable node, the separate explicit `retire-quiesced-format`
+action can retain an unused interrupted disk without stopping its VM. Lost,
+unreachable or unverifiable nodes still require the fenced procedure above.
+Only an inactive sent first format with `FormatDispatched`, exact current
+binding/attachment and a unique unmounted non-root, unpartitioned device with
+no recognized filesystem type or UUID is eligible. This proves no recognized
+filesystem signature, not zero-filled media or authority to erase any data.
+
+Use the exact saved operation and full CSI handle, explicit installation/project/
+context, operator and a saved UUID nonce. Do not provide a fence ID. Inspect the
+records first, then run the scoped command with `--dry-run`. A successful dry run
+checks eligibility using fresh read-only facts; it does not close the local
+barrier or establish kernel quiescence. Actual execution can still refuse.
+
+Actual execution saves the operator request before requesting authenticated
+quiescence. The existing node agent holds the persistent per-volume lock,
+commits its local detach barrier, refuses stage/target/pending references, and
+requires kernel exclusive unmounted access across mount namespaces. Captured old
+format permits cannot pass this barrier. The controller rechecks the current
+boot, provider attachment and absence of a filesystem, persists the exact
+quiescence receipt, then permanently retires the volume and closes only the
+original format's claims. It never reissues mkfs or rewinds the format intent.
+
+An interrupted or rejected actual request may leave the local barrier closed.
+Keep the original disk/history and inspect the saved outcome. Resume the same
+exact request and nonce only after identifying the interrupted result; never
+reset the journal or synthesize a replacement receipt. A matching saved proof
+allows completion after a tombstone, completed operation or partial release;
+newer unrelated claims remain intact. Normal hot Unpublish may then detach the
+retained disk. Publish, Stage and Delete continue to refuse it permanently.
+
+This controller addition uses the existing baseline/quiesce wire protocol and
+requires no node-agent update from the preceding release. Upgrade only the
+controller after a supported freeze/export/resume backup. Preserve the registry
+epoch and require native proof that the preceding issuer process is Gone. Do not
+roll node agents or manufacture another interrupted format on shared workers to
+exercise this recovery.
