@@ -4,7 +4,7 @@
 
 **Goal:** Retire one unused incomplete format on a verifiably quiesced live node without VM fencing or another mkfs.
 
-**Architecture:** A separate explicit admin action reuses authenticated baseline/quiesce jobs, persists their proof before the retained tombstone, and resumes only its own interrupted metadata updates. Existing lost-node fencing and node binaries remain unchanged.
+**Architecture:** A separate explicit admin action reuses authenticated baseline/quiesce jobs, persists their proof before the retained tombstone, and resumes only its own interrupted metadata updates. Existing lost-node fencing and ordinary quiesce remain unchanged; upgrade the selected recovery agent.
 
 **Tech Stack:** Go, existing CSI coordinator/registry/admin CLI, Kubernetes and CLO native read-only postcondition checks.
 
@@ -13,7 +13,7 @@
 ## Global constraints
 
 - Explicit admin action only; no automatic retirement, VM stop, second mkfs, native disk deletion or metadata reset.
-- Use the existing node baseline/quiesce wire protocol and exact active VM/binding/boot/device proof.
+- Use additive raw probeBlank/quiesceBlank jobs and exact active VM/binding/boot/device proof.
 - Keep `FormatDispatched`, Sent, nonce, serial, FSUUID, attachment epoch and original disk history.
 - Persist matching quiescence proof before permanent tombstone; never release another operation's claims.
 - Source nodes/PVs, source SQL cohort and independent production namespaces remain unchanged in live acceptance.
@@ -58,9 +58,9 @@
 **Interfaces:** Consume committed Tasks 1–2. Produce reviewed immutable controller artifact, supported issuer handoff and one live retained-disk receipt; no production cutover authority.
 
 - [ ] Review the whole diff from the plan base in one fresh context. Fix Critical/Important once with RED→GREEN tests and green suite.
-- [ ] Build immutable controller image; record exact source/image hashes and unchanged installed node image/protocol.
+- [ ] Build immutable controller image; record exact source/image hashes and additive fail-closed protocol and exact selected-node image.
 - [ ] Collect fresh read-only target/source identities, sole pending operation, protected workload health and registry epoch/issuer. Take supported formal freeze/export/resume backup.
-- [ ] Replace only the controller image through UID/spec CAS. Observe exact new issuer and proven old process termination without epoch reset; preserve all source node/PV/SQL identities.
+- [ ] Patch only the selected agent Pod driver image through UID/spec CAS; preserve other agent Pod images/UIDs and DaemonSet spec. Replace the controller image through UID/spec CAS. Observe exact new issuer and proven old process termination without epoch reset; preserve all source node/PV/SQL identities.
 - [ ] Dry-run only the pinned unused rehearsal volume. After accepted eligibility, save one durable actual intent and retire it once through supported API.
 - [ ] Observe normal hot Unpublish, native AVAILABLE retained disk, closed original operation and idle node enrollment. Never replay an unknown actual outcome or delete the retained disk.
 - [ ] Verify original source node/PV/SQL cohort, independent production HTTP/replicas and supplemental cold CSI admission. Record remaining migration gates; do not claim full migration readiness.

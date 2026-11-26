@@ -18,7 +18,7 @@ type retirementChannel struct {
 
 func (c *retirementChannel) Exchange(ctx context.Context, job protocol.Job) (protocol.Receipt, error) {
 	r, e := c.Channel.Exchange(ctx, job)
-	if job.Type == "quiesce" {
+	if job.Type == "quiesceBlank" {
 		c.quiesces++
 	}
 	if e == nil && c.change != nil {
@@ -165,10 +165,10 @@ func TestQuiescedFormatRefusesUnsafeCurrentFacts(t *testing.T) {
 				q.FenceID = "unexpected"
 			default:
 				ch.change = func(job protocol.Job, r *protocol.Receipt) {
-					if job.Type != "baseline" && job.Type != "quiesce" {
+					if job.Type != "probeBlank" && job.Type != "quiesceBlank" {
 						return
 					}
-					if scenario == "old-boot" && job.Type == "quiesce" {
+					if scenario == "old-boot" && job.Type == "quiesceBlank" {
 						r.Snapshot.BootID = "old-boot"
 					}
 					if scenario == "foreign-boot" {
@@ -180,7 +180,7 @@ func TestQuiescedFormatRefusesUnsafeCurrentFacts(t *testing.T) {
 					if scenario == "foreign-volume-receipt" {
 						r.Volume.AttachEpoch++
 					}
-					if scenario == "no-kernel-ack" && job.Type == "quiesce" {
+					if scenario == "no-kernel-ack" && job.Type == "quiesceBlank" {
 						r.Quiesced = false
 					}
 					for i, d := range r.Snapshot.Disks {
@@ -201,7 +201,7 @@ func TestQuiescedFormatRefusesUnsafeCurrentFacts(t *testing.T) {
 							r.Snapshot.Disks[i].FSType = "ext4"
 							r.Snapshot.Disks[i].FSUUID = v.Status.FSUUID
 						case "filesystem-arrived-during-quiesce":
-							if job.Type == "quiesce" {
+							if job.Type == "quiesceBlank" {
 								r.Snapshot.Disks[i].FSType = "ext4"
 								r.Snapshot.Disks[i].FSUUID = v.Status.FSUUID
 							}

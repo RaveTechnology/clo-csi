@@ -16,8 +16,10 @@ Fenced retirement and worker replacement use existing behavior but affect every
 workload on that worker. Direct state resets or another mkfs are unacceptable.
 The selected live path uses the same authenticated per-volume quiescence that
 already permits normal hot Unpublish; the node identity and kernel proof remain
-mandatory. The existing node wire protocol already supports baseline and
-quiesce, so only the controller needs new behavior.
+mandatory. Review found ordinary quiesce cannot prove absence of a raw signature. Add
+probeBlank and quiesceBlank with affirmative blankChecked receipts. The selected
+recovery node agent must be upgraded as well as the controller; old agents refuse
+these jobs. Ordinary quiesce and normal jobs remain unchanged.
 
 ## Admission and proof
 
@@ -29,7 +31,9 @@ restored epochs needing fencing, foreign attachments and mismatched identities
 are refused. The live node must be unfenced, unquarantined, and on its exact
 active VM; a fence ID is not accepted by this action.
 
-Before mutation, collect a fresh baseline with the existing authenticated agent.
+Before mutation, collect a raw read-only probeBlank from the upgraded authenticated agent.
+Both fresh and saved receipts must match the immutable original operation boot;
+current re-enrollment boot status alone is insufficient.
 Verify the current boot, root/device identity, provider attachment and complete
 inventory. The selected non-root, unpartitioned device must be unique, have no
 mounts and have no recognized filesystem signature. An existing filesystem uses
@@ -39,14 +43,17 @@ Dry run performs these read-only eligibility checks. It does not close the local
 volume barrier or promise that a later commit can quiesce. Document this limit.
 
 Before actual quiescence, persist the exact operator request on the operation.
-The existing node `quiesce` job serializes with Stage on the persistent volume
+The new node `quiesceBlank` job serializes with Stage on the persistent volume
 lock, saves `Barrier` and `DetachCommitted`, refuses stage/pod/pending references,
 and proves kernel-level exclusive unmounted access across mount namespaces.
-An old captured Stage permit is blocked by that committed local barrier.
+While holding that lock it refuses local FormatComplete, raw signatures of any
+type and probe errors, independently of possibly stale lsblk. An old captured Stage permit is blocked by that committed local barrier.
 
 Validate the fresh quiescence receipt against the exact volume, binding, boot,
-blank device and current native attachment again. Persist the receipt before
-setting a permanent retired/barrier tombstone. Then complete the original format
+blank device and current native attachment again. Persist the exact request/job before dispatch, and the unmodified authenticated
+receipt before setting a permanent retired/barrier tombstone. Seal a SHA-256 of
+operation UID, intent/job and receipt in that tombstone; require the original
+request audit, exact job, original boot and seal on every completion retry. Then complete the original format
 operation without changing its Sent flag, nonce, format reference, serial,
 filesystem identity or attachment epoch, and release only its own claims.
 
@@ -74,8 +81,9 @@ interruption and repeated recovery, backup graph compatibility and no cloud or
 filesystem mutation dispatch. Keep the existing fenced retirement tests green.
 
 Run one independent review of the whole change before live use. Build an
-immutable controller image with the unchanged node wire protocol; preserve the
-installed node image. Before controller replacement, take a supported registry
+immutable image with the additive jobs; update only the selected recovery node
+agent and controller. Older agents refuse new jobs; normal jobs remain compatible.
+Do not downgrade to a writer that drops proof fields after saving an actual intent. Before controller replacement, take a supported registry
 backup and capture issuer identities. The new controller must prove the old
 process Gone through the existing agent; no epoch or issuer bypass is allowed.
 

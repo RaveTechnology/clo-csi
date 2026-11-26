@@ -264,7 +264,10 @@ func (n *fakeChannel) Exchange(_ context.Context, j protocol.Job) (protocol.Rece
 			return r, errors.New("lost observation")
 		}
 		r.Snapshot = n.snapshot()
-		if j.Type == "quiesce" {
+		if j.Type == "probeBlank" || j.Type == "quiesceBlank" {
+			r.BlankChecked = true
+		}
+		if j.Type == "quiesce" || j.Type == "quiesceBlank" {
 			r.Quiesced = !n.mounted
 			if n.staleBoot {
 				r.Snapshot.BootID = "old-boot"

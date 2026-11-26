@@ -47,23 +47,24 @@ type VolumeSpec struct {
 	PVCUID         string `json:"pvcUID,omitempty"`
 }
 type VolumeStatus struct {
-	Initialized      bool                       `json:"initialized"`
-	ProviderID       string                     `json:"providerID"`
-	Serial           string                     `json:"serial"`
-	SizeGB           int                        `json:"sizeGB"`
-	FSUUID           string                     `json:"fsUUID"`
-	Initialization   string                     `json:"initialization"`
-	NodeBindingID    string                     `json:"nodeBindingID"`
-	AttachEpoch      int64                      `json:"attachEpoch"`
-	PendingOp        string                     `json:"pendingOp"`
-	Barrier          bool                       `json:"barrier"`
-	Published        bool                       `json:"published"`
-	Deleted          bool                       `json:"deleted"`
-	Retired          bool                       `json:"retired"`
-	Quarantined      bool                       `json:"quarantined"`
-	Reason           string                     `json:"reason"`
-	FormatOp         string                     `json:"formatOp"`
-	RecoveryRequests []protocol.RecoveryRequest `json:"recoveryRequests,omitempty"`
+	RetirementProofSHA256 string                     `json:"retirementProofSHA256,omitempty"`
+	Initialized           bool                       `json:"initialized"`
+	ProviderID            string                     `json:"providerID"`
+	Serial                string                     `json:"serial"`
+	SizeGB                int                        `json:"sizeGB"`
+	FSUUID                string                     `json:"fsUUID"`
+	Initialization        string                     `json:"initialization"`
+	NodeBindingID         string                     `json:"nodeBindingID"`
+	AttachEpoch           int64                      `json:"attachEpoch"`
+	PendingOp             string                     `json:"pendingOp"`
+	Barrier               bool                       `json:"barrier"`
+	Published             bool                       `json:"published"`
+	Deleted               bool                       `json:"deleted"`
+	Retired               bool                       `json:"retired"`
+	Quarantined           bool                       `json:"quarantined"`
+	Reason                string                     `json:"reason"`
+	FormatOp              string                     `json:"formatOp"`
+	RecoveryRequests      []protocol.RecoveryRequest `json:"recoveryRequests,omitempty"`
 }
 type VolumeRecord struct {
 	Meta
@@ -118,14 +119,19 @@ type OperationSpec struct {
 	FenceID        string                    `json:"fenceID,omitempty"`
 	LimitBytes     int64                     `json:"limitBytes,omitempty"`
 }
+type QuiescedRetirementIntent struct {
+	Request protocol.RecoveryRequest `json:"request"`
+	Job     protocol.Job             `json:"job"`
+}
 type OperationStatus struct {
-	Initialized      bool                       `json:"initialized"`
-	Phase            Phase                      `json:"phase"`
-	Sent             bool                       `json:"sent"`
-	Result           string                     `json:"result"`
-	Receipt          *protocol.Receipt          `json:"receipt,omitempty"`
-	Reason           string                     `json:"reason"`
-	RecoveryRequests []protocol.RecoveryRequest `json:"recoveryRequests,omitempty"`
+	QuiescedRetirement *QuiescedRetirementIntent  `json:"quiescedRetirement,omitempty"`
+	Initialized        bool                       `json:"initialized"`
+	Phase              Phase                      `json:"phase"`
+	Sent               bool                       `json:"sent"`
+	Result             string                     `json:"result"`
+	Receipt            *protocol.Receipt          `json:"receipt,omitempty"`
+	Reason             string                     `json:"reason"`
+	RecoveryRequests   []protocol.RecoveryRequest `json:"recoveryRequests,omitempty"`
 }
 type OperationRecord struct {
 	Meta
